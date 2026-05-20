@@ -1,0 +1,123 @@
+"""Smoke tests using synthetic probs (no network, no HF downloads)."""
+
+from __future__ import annotations
+
+import io
+import sys
+
+import numpy as np
+import torch
+
+from rankseg_benchmark.datasets import _decode_label, _decode_probs
+from rankseg_benchmark.metrics import ConfusionAccumulator
+from rankseg_benchmark.runner import configure_rankseg_path
+from rankseg_benchmark.timing import Timer
+
+
+def test_multiclass_perfect_prediction_scores_one():
+    acc = ConfusionAccumulator(num_classes=3, output_mode="multiclass")
+    label = torch.tensor([[[0, 1, 2], [2, 1, 0]]])
+    pred = label.clone()
+    acc.update(pred, label)
+    s = acc.summary()
+    for key in ("mDice", "mIoU"):
+        assert abs(s[key] - 1.0) < 1e-6, f"{key} should be 1.0, got {s[key]}"
+
+
+def test_multiclass_respects_ignore_index():
+    acc = ConfusionAccumulator(num_classes=2, output_mode="multiclass", ignore_index=255)
+    label = torch.tensor([[[0, 1, 255]]])
+    pred = torch.tensor([[[0, 1, 0]]])  # the 255 pixel would otherwise be FP for class 0
+    acc.update(pred, label)
+    assert abs(acc.summary()["mIoU"] - 1.0) < 1e-6
+
+
+def test_mDice_averages_per_image_then_across_images():
+    """mDice: per-image average over active classes, then average over images.
+
+    Image 0: 4 pixels, 2 classes active (0 and 1), prediction perfect -> Dice = (1 + 1) / 2 = 1.0
+    Image 1: 4 pixels, 1 class active (class 0), prediction half wrong:
+        label = [0, 0, 0, 0], pred = [0, 0, 1, 1] -> for class 0: TP=2, FP=0, FN=2 -> Dice=2*2/(2*2+0+2)=0.6667
+        only class 0 is active for image 1, so per-image dice = 0.6667
+    mDice = (1.0 + 0.6667) / 2 = 0.8333
+    """
+    acc = ConfusionAccumulator(num_classes=2, output_mode="multiclass")
+    label = torch.tensor([[0, 0, 1, 1], [0, 0, 0, 0]])
+    pred = torch.tensor([[0, 0, 1, 1], [0, 0, 1, 1]])
+    acc.update(pred, label)
+    s = acc.summary()
+    assert abs(s["mDice"] - (1.0 + 2 / 3) / 2) < 1e-4
+
+
+def test_multilabel_perfect_prediction_scores_one():
+    acc = ConfusionAccumulator(num_classes=2, output_mode="multilabel")
+    label = torch.tensor([[[[1, 0], [0, 1]], [[0, 1], [1, 0]]]], dtype=torch.bool)  # (1, 2, 2, 2)
+    pred = label.clone()
+    acc.update(pred, label)
+    s = acc.summary()
+    assert abs(s["mDice"] - 1.0) < 1e-6
+    assert abs(s["mIoU"] - 1.0) < 1e-6
+
+
+def test_per_class_breakdown_shape():
+    acc = ConfusionAccumulator(num_classes=3, output_mode="multiclass")
+    label = torch.tensor([[0, 1, 2], [0, 1, 2]])
+    pred = label.clone()
+    acc.update(pred, label)
+    s = acc.summary()
+    assert s["per_class_dice"].shape == (3,)
+    assert s["per_class_iou"].shape == (3,)
+    assert s["active_per_class"].shape == (3,)
+    assert torch.allclose(s["active_per_class"], torch.tensor([2.0, 2.0, 2.0], dtype=torch.float64))
+
+
+def test_timer_records_calls():
+    t = Timer(use_cuda=False)
+    with t.measure():
+        sum(range(1000))
+    with t.measure():
+        sum(range(1000))
+    assert t.n_calls == 2
+    assert t.mean_ms >= 0.0
+
+
+def test_decodes_npy_bytes_from_hf_parquet_rows():
+    probs_arr = np.ones((2, 3, 4), dtype=np.float16)
+    label_arr = np.array([[0, 1, 1, 0], [1, 0, 0, 1], [0, 0, 1, 1]], dtype=np.int64)
+
+    probs_buf = io.BytesIO()
+    label_buf = io.BytesIO()
+    np.save(probs_buf, probs_arr)
+    np.save(label_buf, label_arr)
+
+    probs = _decode_probs(probs_buf.getvalue(), num_classes=2)
+    label = _decode_label(label_buf.getvalue(), output_mode="multiclass")
+
+    assert probs.shape == (2, 3, 4)
+    assert probs.dtype == torch.float32
+    assert label.shape == (3, 4)
+    assert label.dtype == torch.int64
+
+
+def test_configure_rankseg_path_prepends_local_checkout(tmp_path, monkeypatch):
+    checkout = tmp_path / "rankseg"
+    checkout.mkdir()
+    monkeypatch.delenv("RANKSEG_PATH", raising=False)
+    monkeypatch.setattr(sys, "path", ["existing"])
+
+    resolved = configure_rankseg_path(checkout)
+
+    assert resolved == checkout.resolve()
+    assert sys.path[0] == str(checkout.resolve())
+    assert sys.path[1:] == ["existing"]
+
+
+def test_configure_rankseg_path_uses_env_when_argument_missing(tmp_path, monkeypatch):
+    checkout = tmp_path / "rankseg"
+    checkout.mkdir()
+    monkeypatch.setenv("RANKSEG_PATH", str(checkout))
+    monkeypatch.setattr(sys, "path", [])
+
+    configure_rankseg_path()
+
+    assert sys.path[0] == str(checkout.resolve())

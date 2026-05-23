@@ -5,14 +5,20 @@ from __future__ import annotations
 import os
 import sys
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import torch
 from tqdm import tqdm
 
-from rankseg_benchmark.datasets import DatasetSpec, get_dataset_size_from_cache, get_dataset_size_from_metadata, iter_batches
-from rankseg_benchmark.metrics import ConfusionAccumulator
+from rankseg_benchmark.datasets import (
+    DatasetSpec,
+    get_dataset_size_from_cache,
+    get_dataset_size_from_metadata,
+    iter_batches,
+    iter_batches_with_metadata,
+)
+from rankseg_benchmark.metrics import ConfusionAccumulator, FoldMeanAccumulator, MedicalCaseAccumulator
 from rankseg_benchmark.timing import Timer
 
 LOGGER = logging.getLogger(__name__)
@@ -21,12 +27,12 @@ LOGGER = logging.getLogger(__name__)
 @dataclass
 class RunResult:
     method: str  # "argmax" / "rankseg-<solver>"
-    confusion: ConfusionAccumulator
+    confusion: ConfusionAccumulator | FoldMeanAccumulator
     timer: Timer
 
     def summary(self) -> dict:
         s = self.confusion.summary()
-        return {
+        result = {
             "method": self.method,
             # per-image metrics (as in the RankSEG-RMA paper)
             "mDice": s["mDice"],
@@ -40,12 +46,31 @@ class RunResult:
             "median_ms": self.timer.median_ms,
             "n_calls": self.timer.n_calls,
         }
+        if "folds" in s:
+            result["folds"] = s["folds"]
+        return result
 
 
 def _baseline_argmax(probs: torch.Tensor, output_mode: str) -> torch.Tensor:
     if output_mode == "multiclass":
         return torch.argmax(probs, dim=1)
     return probs > 0.5  # multilabel baseline = thresholding
+
+
+def _predict_timed_batch(
+    probs: torch.Tensor,
+    *,
+    output_mode: str,
+    rankseg,
+    base_timer: Timer,
+    rs_timer: Timer,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    batch_n = probs.size(0)
+    with base_timer.measure(units=batch_n):
+        base_pred = _baseline_argmax(probs, output_mode)
+    with rs_timer.measure(units=batch_n):
+        rs_pred = rankseg.predict(probs)
+    return base_pred, rs_pred
 
 
 def configure_rankseg_path(rankseg_path: str | os.PathLike[str] | None = None) -> Path | None:
@@ -107,6 +132,21 @@ def run_benchmark(
 
     LOGGER.info("Constructing RankSEG: solver=%s metric=%s output_mode=%s", solver, metric, spec.output_mode)
     rankseg = RankSEG(metric=metric, solver=solver, output_mode=spec.output_mode)
+
+    if spec.eval_unit == "case":
+        return _run_case_benchmark(
+            spec,
+            rankseg=rankseg,
+            solver=solver,
+            dev=dev,
+            use_cuda=use_cuda,
+            limit=limit,
+            warmup=warmup,
+            batch_size=batch_size,
+            cache_dataset=cache_dataset,
+            cache_dir=str(cache_dir) if cache_dir is not None else None,
+            progress=progress,
+        )
 
     base_conf = ConfusionAccumulator(spec.num_classes, spec.output_mode, spec.ignore_index)
     rs_conf = ConfusionAccumulator(spec.num_classes, spec.output_mode, spec.ignore_index)
@@ -177,12 +217,14 @@ def run_benchmark(
                 tuple(probs.shape),
                 tuple(label.shape),
             )
-            with base_timer.measure(units=batch_n):
-                base_pred = _baseline_argmax(probs, spec.output_mode)
+            base_pred, rs_pred = _predict_timed_batch(
+                probs,
+                output_mode=spec.output_mode,
+                rankseg=rankseg,
+                base_timer=base_timer,
+                rs_timer=rs_timer,
+            )
             base_conf.update(base_pred, label)
-
-            with rs_timer.measure(units=batch_n):
-                rs_pred = rankseg.predict(probs)
             rs_conf.update(rs_pred, label)
 
             previous_processed = processed
@@ -224,6 +266,154 @@ def run_benchmark(
     )
 
 
+def _run_case_benchmark(
+    spec: DatasetSpec,
+    *,
+    rankseg,
+    solver: str,
+    dev: torch.device,
+    use_cuda: bool,
+    limit: int | None,
+    warmup: int,
+    batch_size: int,
+    cache_dataset: bool,
+    cache_dir: str | None,
+    progress: bool,
+) -> tuple[RunResult, RunResult]:
+    if spec.num_folds is None or spec.num_folds < 1:
+        raise ValueError(f"Case-level dataset {spec.name!r} requires num_folds >= 1")
+    if not spec.hf_data_dir:
+        raise ValueError(f"Case-level dataset {spec.name!r} requires hf_data_dir")
+    if not spec.case_id_key:
+        raise ValueError(f"Case-level dataset {spec.name!r} requires case_id_key")
+
+    base_conf = FoldMeanAccumulator(spec.num_classes)
+    rs_conf = FoldMeanAccumulator(spec.num_classes)
+    base_timer = Timer(use_cuda=use_cuda)
+    rs_timer = Timer(use_cuda=use_cuda)
+    warmed = 0
+    processed = 0
+
+    LOGGER.info(
+        "Starting case-level benchmark: folds=%d warmup=%d timed_limit_per_fold=%s batch_size=%d",
+        spec.num_folds,
+        warmup,
+        limit if limit is not None else "all",
+        batch_size,
+    )
+
+    for fold in range(spec.num_folds):
+        fold_spec = replace(spec, hf_data_dir=f"{spec.hf_data_dir}/fold{fold}")
+        fold_base = MedicalCaseAccumulator(
+            spec.num_classes,
+            spec.ignore_index,
+            binary=spec.num_classes == 2,
+        )
+        fold_rs = MedicalCaseAccumulator(
+            spec.num_classes,
+            spec.ignore_index,
+            binary=spec.num_classes == 2,
+        )
+
+        progress_total = limit
+        if cache_dataset and progress_total is None:
+            progress_total = get_dataset_size_from_cache(
+                fold_spec,
+                cache_dir=cache_dir,
+            )
+        progress_bar = (
+            tqdm(
+                desc=f"{spec.name} fold {fold}/{spec.num_folds - 1} [{solver}]",
+                total=progress_total,
+                unit="slice",
+                dynamic_ncols=True,
+            )
+            if progress
+            else None
+        )
+
+        samples = iter_batches_with_metadata(
+            fold_spec,
+            limit=limit,
+            device=dev,
+            batch_size=batch_size,
+            cache_dataset=cache_dataset,
+            cache_dir=cache_dir,
+        )
+
+        try:
+            for probs, label, metadata in samples:
+                batch_n = probs.size(0)
+                progress_n = batch_n
+                if warmed < warmup:
+                    warmup_n = min(warmup - warmed, batch_n)
+                    _ = _baseline_argmax(probs[:warmup_n], spec.output_mode)
+                    _ = rankseg.predict(probs[:warmup_n])
+                    warmed += warmup_n
+                    if warmup_n == batch_n:
+                        if progress_bar is not None:
+                            progress_bar.update(progress_n)
+                        continue
+                    probs = probs[warmup_n:]
+                    label = label[warmup_n:]
+                    metadata = metadata[warmup_n:]
+                    batch_n = probs.size(0)
+
+                base_pred, rs_pred = _predict_timed_batch(
+                    probs,
+                    output_mode=spec.output_mode,
+                    rankseg=rankseg,
+                    base_timer=base_timer,
+                    rs_timer=rs_timer,
+                )
+
+                for i, meta in enumerate(metadata):
+                    if spec.case_id_key not in meta:
+                        raise KeyError(f"Missing case id field {spec.case_id_key!r} in dataset row metadata")
+                    case_id = meta[spec.case_id_key]
+                    fold_base.update_slice(case_id, base_pred[i], label[i])
+                    fold_rs.update_slice(case_id, rs_pred[i], label[i])
+
+                previous_processed = processed
+                processed += batch_n
+                if processed == batch_n or processed // 25 > previous_processed // 25:
+                    LOGGER.info(
+                        "Processed %d timed slices: argmax_mean=%.2f ms/slice RankSEG_mean=%.2f ms/slice",
+                        processed,
+                        base_timer.mean_ms,
+                        rs_timer.mean_ms,
+                    )
+                if progress_bar is not None:
+                    progress_bar.update(progress_n)
+        finally:
+            if progress_bar is not None:
+                progress_bar.close()
+
+        base_conf.add_fold(fold, fold_base)
+        rs_conf.add_fold(fold, fold_rs)
+        base_summary = fold_base.summary()
+        rs_summary = fold_rs.summary()
+        LOGGER.info(
+            "Fold %d complete: cases=%d argmax_mIoU=%.2f RankSEG_mIoU=%.2f",
+            fold,
+            fold_base.n_cases,
+            100.0 * float(base_summary["mIoU"]),
+            100.0 * float(rs_summary["mIoU"]),
+        )
+
+    LOGGER.info(
+        "Case-level benchmark complete: warmup_slices=%d timed_slices=%d folds=%d",
+        warmed,
+        processed,
+        spec.num_folds,
+    )
+
+    return (
+        RunResult("argmax", base_conf, base_timer),
+        RunResult(f"rankseg-{solver}", rs_conf, rs_timer),
+    )
+
+
 def format_report(
     baseline: RunResult,
     rankseg_res: RunResult,
@@ -255,9 +445,10 @@ def format_report(
         tablefmt="github",
     )
 
+    runtime_unit = "slice" if "folds" in b else "img"
     runtime_rows = [
-        ["mean ms / img", f"{b['mean_ms']:.2f}", f"{r['mean_ms']:.2f}", f"{r['mean_ms'] - b['mean_ms']:+.2f}"],
-        ["median ms / img", f"{b['median_ms']:.2f}", f"{r['median_ms']:.2f}",
+        [f"mean ms / {runtime_unit}", f"{b['mean_ms']:.2f}", f"{r['mean_ms']:.2f}", f"{r['mean_ms'] - b['mean_ms']:+.2f}"],
+        [f"median ms / {runtime_unit}", f"{b['median_ms']:.2f}", f"{r['median_ms']:.2f}",
          f"{r['median_ms'] - b['median_ms']:+.2f}"],
     ]
     runtime = tabulate(

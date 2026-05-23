@@ -59,6 +59,13 @@ the argmax baseline.
 | mDice |  63.98 |       64.92 |       +0.93 |
 | mIoU  |  56.95 |       57.67 |       +0.72 |
 
+### KiTS
+
+|       |   argmax |   rankseg-RMA |   Improvement |
+|-------|----------|---------------|---------------|
+| mDice |    61.16 |         63.53 |          2.37 |
+| mIoU  |    54.19 |         56.21 |          2.02 |
+
 ## Available datasets
 
 | Name         | Classes | Mode        | Source model        |
@@ -66,6 +73,7 @@ the argmax baseline.
 | `pascal_voc` |      21 | multiclass  | Pre-computed probs   |
 | `ade20k`     |     150 | multiclass  | Pre-computed probs   |
 | `cityscapes` |      19 | multiclass  | Pre-computed probs   |
+| `kits`       |       2 | multiclass  | Pre-computed probs   |
 
 List datasets at runtime:
 

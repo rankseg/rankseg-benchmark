@@ -49,6 +49,9 @@ class DatasetSpec:
     output_mode: str        # "multiclass" or "multilabel"
     hf_data_dir: str | None = None
     ignore_index: int | None = None
+    eval_unit: str = "image"    # "image" or "case"
+    num_folds: int | None = None
+    case_id_key: str | None = None
     description: str = ""
 
 
@@ -60,7 +63,7 @@ REGISTRY: dict[str, DatasetSpec] = {
         hf_split="test",
         num_classes=21,
         output_mode="multiclass",
-        ignore_index=21,
+        ignore_index=255,
         description="PASCAL VOC 2012, precomputed probabilities.",
     ),
     "ade20k": DatasetSpec(
@@ -82,6 +85,19 @@ REGISTRY: dict[str, DatasetSpec] = {
         output_mode="multiclass",
         ignore_index=255,
         description="Cityscapes, precomputed probabilities.",
+    ),
+    "kits": DatasetSpec(
+        name="kits",
+        hf_repo=HF_BENCHMARK_REPO,
+        hf_data_dir="kits",
+        hf_split="test",
+        num_classes=2,
+        output_mode="multiclass",
+        ignore_index=255,
+        eval_unit="case",
+        num_folds=5,
+        case_id_key="case_id",
+        description="KiTS, 5-fold case-level evaluation from slice predictions.",
     ),
 }
 
@@ -204,6 +220,54 @@ def iter_batches(
     Consecutive samples are batched only when their decoded shapes match. This
     keeps variable-resolution segmentation datasets valid without padding labels.
     """
+    for probs, labels, _metadata in _iter_batches(
+        spec,
+        limit=limit,
+        device=device,
+        batch_size=batch_size,
+        cache_dataset=cache_dataset,
+        cache_dir=cache_dir,
+        include_metadata=False,
+    ):
+        yield probs, labels
+
+
+def iter_batches_with_metadata(
+    spec: DatasetSpec,
+    *,
+    limit: int | None = None,
+    device: torch.device | str = "cpu",
+    batch_size: int = 8,
+    cache_dataset: bool = False,
+    cache_dir: str | None = None,
+) -> Iterator[tuple[torch.Tensor, torch.Tensor, list[dict[str, object]]]]:
+    """Yield batched (probs, label, metadata) triples.
+
+    Metadata contains the row fields other than ``probs`` and ``label``. As in
+    ``iter_batches``, consecutive samples are batched only when their decoded
+    shapes match.
+    """
+    yield from _iter_batches(
+        spec,
+        limit=limit,
+        device=device,
+        batch_size=batch_size,
+        cache_dataset=cache_dataset,
+        cache_dir=cache_dir,
+        include_metadata=True,
+    )
+
+
+def _iter_batches(
+    spec: DatasetSpec,
+    *,
+    limit: int | None,
+    device: torch.device | str,
+    batch_size: int,
+    cache_dataset: bool,
+    cache_dir: str | None,
+    include_metadata: bool,
+) -> Iterator[tuple[torch.Tensor, torch.Tensor, list[dict[str, object]]]]:
     if batch_size < 1:
         raise ValueError(f"batch_size must be >= 1, got {batch_size}")
 
@@ -215,7 +279,7 @@ def iter_batches(
     if cache_dir is not None:
         load_kwargs["cache_dir"] = cache_dir
     LOGGER.info(
-        "Opening Hugging Face dataset: repo=%s split=%s data_dir=%s mode=%s cache_dir=%s limit=%s device=%s batch_size=%d",
+        "Opening Hugging Face dataset: repo=%s split=%s data_dir=%s mode=%s cache_dir=%s limit=%s device=%s batch_size=%d metadata=%s",
         spec.hf_repo,
         spec.hf_split,
         spec.hf_data_dir or "<repo root>",
@@ -224,6 +288,7 @@ def iter_batches(
         limit if limit is not None else "all",
         device,
         batch_size,
+        include_metadata,
     )
     if cache_dataset:
         LOGGER.info("Caching dataset locally before benchmark; this may take a while on first run")
@@ -233,16 +298,18 @@ def iter_batches(
 
     probs_batch: list[torch.Tensor] = []
     label_batch: list[torch.Tensor] = []
+    metadata_batch: list[dict[str, object]] = []
     current_shape: tuple[tuple[int, ...], tuple[int, ...]] | None = None
     n_seen = 0
     n_batches = 0
 
-    def flush() -> tuple[torch.Tensor, torch.Tensor] | None:
-        nonlocal probs_batch, label_batch, current_shape, n_batches
+    def flush() -> tuple[torch.Tensor, torch.Tensor, list[dict[str, object]]] | None:
+        nonlocal probs_batch, label_batch, metadata_batch, current_shape, n_batches
         if not probs_batch:
             return None
         probs = torch.stack(probs_batch).to(device)
         labels = torch.stack(label_batch).to(device)
+        metadata = metadata_batch
         n_batches += 1
         LOGGER.debug(
             "Yielding batch %d: batch_size=%d probs_shape=%s label_shape=%s",
@@ -253,8 +320,9 @@ def iter_batches(
         )
         probs_batch = []
         label_batch = []
+        metadata_batch = []
         current_shape = None
-        return probs, labels
+        return probs, labels, metadata
 
     for row in ds:
         if limit is not None and n_seen >= limit:
@@ -262,6 +330,7 @@ def iter_batches(
             break
         probs = _decode_probs(row["probs"], num_classes=spec.num_classes)
         label = _decode_label(row["label"], output_mode=spec.output_mode)
+        metadata = {k: v for k, v in row.items() if k not in {"probs", "label"}} if include_metadata else {}
         n_seen += 1
         shape_key = (tuple(probs.shape), tuple(label.shape))
 
@@ -282,6 +351,7 @@ def iter_batches(
         current_shape = shape_key
         probs_batch.append(probs)
         label_batch.append(label)
+        metadata_batch.append(metadata)
 
     batch = flush()
     if batch is not None:

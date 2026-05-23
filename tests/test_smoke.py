@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 from rankseg_benchmark.datasets import _decode_label, _decode_probs
-from rankseg_benchmark.metrics import ConfusionAccumulator
+from rankseg_benchmark.metrics import ConfusionAccumulator, FoldMeanAccumulator, MedicalCaseAccumulator
 from rankseg_benchmark.runner import configure_rankseg_path
 from rankseg_benchmark.timing import Timer
 
@@ -69,6 +69,35 @@ def test_per_class_breakdown_shape():
     assert s["per_class_iou"].shape == (3,)
     assert s["active_per_class"].shape == (3,)
     assert torch.allclose(s["active_per_class"], torch.tensor([2.0, 2.0, 2.0], dtype=torch.float64))
+
+
+def test_medical_case_binary_matches_reference_empty_foreground_rule():
+    acc = MedicalCaseAccumulator(num_classes=2, binary=True)
+    acc.update_slice("case-a", torch.tensor([[0, 0], [0, 0]]), torch.tensor([[0, 0], [0, 0]]))
+    acc.update_slice("case-a", torch.tensor([[1, 0], [0, 0]]), torch.tensor([[1, 1], [0, 0]]))
+
+    s = acc.summary()
+    # Slice 0 has no foreground in pred or label, so RankSEG-RMA reduceI treats it as 1.
+    # Slice 1 foreground IoU is 1 / (1 + 0 + 1) = 0.5. Case mIoUI = (1 + 0.5) / 2.
+    assert abs(s["mIoU"] - 0.75) < 1e-6
+    assert abs(s["per_class_iou"][1].item() - 0.75) < 1e-6
+
+
+def test_fold_mean_accumulator_averages_fold_summaries():
+    fold0 = MedicalCaseAccumulator(num_classes=2, binary=True)
+    fold0.update_slice("case-a", torch.tensor([[1, 0]]), torch.tensor([[1, 0]]))
+
+    fold1 = MedicalCaseAccumulator(num_classes=2, binary=True)
+    fold1.update_slice("case-b", torch.tensor([[1, 0]]), torch.tensor([[1, 1]]))
+
+    folds = FoldMeanAccumulator(num_classes=2)
+    folds.add_fold(0, fold0)
+    folds.add_fold(1, fold1)
+
+    s = folds.summary()
+    assert abs(s["mIoU"] - 0.75) < 1e-6
+    assert s["folds"][0]["n_cases"] == 1
+    assert s["folds"][1]["n_cases"] == 1
 
 
 def test_timer_records_calls():

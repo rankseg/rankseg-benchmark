@@ -57,19 +57,43 @@ def _baseline_argmax(probs: torch.Tensor, output_mode: str) -> torch.Tensor:
     return probs > 0.5  # multilabel baseline = thresholding
 
 
+def _rankseg_output_mode(spec: DatasetSpec, solver: str) -> str:
+    if spec.output_mode == "multiclass" and spec.num_classes == 2 and solver in {"BA", "TRNA", "BA+TRNA"}:
+        return "multilabel"
+    return spec.output_mode
+
+
+def _rankseg_predict(
+    rankseg,
+    probs: torch.Tensor,
+    *,
+    dataset_output_mode: str,
+    rankseg_output_mode: str,
+) -> torch.Tensor:
+    if dataset_output_mode == "multiclass" and rankseg_output_mode == "multilabel":
+        return rankseg.predict(probs[:, 1:2])[:, 0].long()
+    return rankseg.predict(probs)
+
+
 def _predict_timed_batch(
     probs: torch.Tensor,
     *,
-    output_mode: str,
+    dataset_output_mode: str,
+    rankseg_output_mode: str,
     rankseg,
     base_timer: Timer,
     rs_timer: Timer,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     batch_n = probs.size(0)
     with base_timer.measure(units=batch_n):
-        base_pred = _baseline_argmax(probs, output_mode)
+        base_pred = _baseline_argmax(probs, dataset_output_mode)
     with rs_timer.measure(units=batch_n):
-        rs_pred = rankseg.predict(probs)
+        rs_pred = _rankseg_predict(
+            rankseg,
+            probs,
+            dataset_output_mode=dataset_output_mode,
+            rankseg_output_mode=rankseg_output_mode,
+        )
     return base_pred, rs_pred
 
 
@@ -130,13 +154,30 @@ def run_benchmark(
     else:
         LOGGER.info("Using device: %s", dev)
 
-    LOGGER.info("Constructing RankSEG: solver=%s metric=%s output_mode=%s", solver, metric, spec.output_mode)
-    rankseg = RankSEG(metric=metric, solver=solver, output_mode=spec.output_mode)
+    rankseg_output_mode = _rankseg_output_mode(spec, solver)
+    if rankseg_output_mode != spec.output_mode:
+        LOGGER.info(
+            "Using RankSEG output_mode=%s for solver=%s on binary multiclass dataset %s: "
+            "BA/TRNA-style solvers operate on binary masks, so RankSEG receives only the foreground "
+            "probability channel and predictions are converted back to binary class labels for evaluation",
+            rankseg_output_mode,
+            solver,
+            spec.name,
+        )
+    LOGGER.info(
+        "Constructing RankSEG: solver=%s metric=%s dataset_output_mode=%s rankseg_output_mode=%s",
+        solver,
+        metric,
+        spec.output_mode,
+        rankseg_output_mode,
+    )
+    rankseg = RankSEG(metric=metric, solver=solver, output_mode=rankseg_output_mode)
 
     if spec.eval_unit == "case":
         return _run_case_benchmark(
             spec,
             rankseg=rankseg,
+            rankseg_output_mode=rankseg_output_mode,
             solver=solver,
             dev=dev,
             use_cuda=use_cuda,
@@ -200,7 +241,12 @@ def run_benchmark(
                     tuple(label[:warmup_n].shape),
                 )
                 _ = _baseline_argmax(probs[:warmup_n], spec.output_mode)
-                _ = rankseg.predict(probs[:warmup_n])
+                _ = _rankseg_predict(
+                    rankseg,
+                    probs[:warmup_n],
+                    dataset_output_mode=spec.output_mode,
+                    rankseg_output_mode=rankseg_output_mode,
+                )
                 warmed += warmup_n
                 if warmup_n == batch_n:
                     if progress_bar is not None:
@@ -219,7 +265,8 @@ def run_benchmark(
             )
             base_pred, rs_pred = _predict_timed_batch(
                 probs,
-                output_mode=spec.output_mode,
+                dataset_output_mode=spec.output_mode,
+                rankseg_output_mode=rankseg_output_mode,
                 rankseg=rankseg,
                 base_timer=base_timer,
                 rs_timer=rs_timer,
@@ -270,6 +317,7 @@ def _run_case_benchmark(
     spec: DatasetSpec,
     *,
     rankseg,
+    rankseg_output_mode: str,
     solver: str,
     dev: torch.device,
     use_cuda: bool,
@@ -348,7 +396,12 @@ def _run_case_benchmark(
                 if warmed < warmup:
                     warmup_n = min(warmup - warmed, batch_n)
                     _ = _baseline_argmax(probs[:warmup_n], spec.output_mode)
-                    _ = rankseg.predict(probs[:warmup_n])
+                    _ = _rankseg_predict(
+                        rankseg,
+                        probs[:warmup_n],
+                        dataset_output_mode=spec.output_mode,
+                        rankseg_output_mode=rankseg_output_mode,
+                    )
                     warmed += warmup_n
                     if warmup_n == batch_n:
                         if progress_bar is not None:
@@ -361,7 +414,8 @@ def _run_case_benchmark(
 
                 base_pred, rs_pred = _predict_timed_batch(
                     probs,
-                    output_mode=spec.output_mode,
+                    dataset_output_mode=spec.output_mode,
+                    rankseg_output_mode=rankseg_output_mode,
                     rankseg=rankseg,
                     base_timer=base_timer,
                     rs_timer=rs_timer,

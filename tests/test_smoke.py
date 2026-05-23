@@ -10,7 +10,7 @@ import torch
 
 from rankseg_benchmark.datasets import _decode_label, _decode_probs
 from rankseg_benchmark.metrics import ConfusionAccumulator, FoldMeanAccumulator, MedicalCaseAccumulator
-from rankseg_benchmark.runner import configure_rankseg_path
+from rankseg_benchmark.runner import _rankseg_predict, configure_rankseg_path
 from rankseg_benchmark.timing import Timer
 
 
@@ -108,6 +108,25 @@ def test_timer_records_calls():
         sum(range(1000))
     assert t.n_calls == 2
     assert t.mean_ms >= 0.0
+
+
+def test_binary_multiclass_rankseg_adapter_uses_foreground_channel():
+    class FakeRankSEG:
+        def predict(self, probs):
+            assert probs.shape == (1, 1, 2, 2)
+            return probs > 0.5
+
+    probs = torch.tensor([[[[0.9, 0.2], [0.1, 0.4]], [[0.1, 0.8], [0.9, 0.6]]]])
+    pred = _rankseg_predict(
+        FakeRankSEG(),
+        probs,
+        dataset_output_mode="multiclass",
+        rankseg_output_mode="multilabel",
+    )
+
+    assert pred.shape == (1, 2, 2)
+    assert pred.dtype == torch.int64
+    assert torch.equal(pred, torch.tensor([[[0, 1], [1, 1]]]))
 
 
 def test_decodes_npy_bytes_from_hf_parquet_rows():

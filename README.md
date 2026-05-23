@@ -150,6 +150,11 @@ print(format_report(baseline, rs, per_class=True))
   image we compute per-class Dice/IoU, average over the classes that are
   actually active in that image, then average across the dataset. This matches
   the [reference implementation](https://github.com/ZixunWang/RankSEG-RMA/blob/master/exp/metrics/accuracy_metric.py).
+- **KiTS**: slice predictions are grouped by case and evaluated with the
+  medical benchmark logic from `exp/test.py::test_medical` in RankSEG-RMA. The
+  reported mDice/mIoU aligns with `mDiceI`/`mIoUI`. For BA/TRNA solvers, KiTS is
+  passed to RankSEG as foreground-channel multilabel probabilities and converted
+  back to binary class labels for evaluation.
 - **Runtime**: per-image latency for `RankSEG.predict` vs. `torch.argmax`,
   with CUDA synchronization and a configurable warmup (default 3 samples).
 - **Per-class gain breakdown** (with `--per-class`): for each class, its

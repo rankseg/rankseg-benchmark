@@ -35,6 +35,7 @@ class ConfusionAccumulator:
     num_classes: int
     output_mode: str = "multiclass"  # "multiclass" or "multilabel"
     ignore_index: int | None = None
+    evaluation_class_ids: tuple[int, ...] | None = None
 
     # Accumulated on CPU as float64 to keep long runs numerically stable.
     _n_images: int = 0
@@ -43,11 +44,25 @@ class ConfusionAccumulator:
     _sum_class_dice: torch.Tensor = field(init=False, repr=False)
     _sum_class_iou: torch.Tensor = field(init=False, repr=False)
     _active_per_class: torch.Tensor = field(init=False, repr=False)
+    _evaluation_mask: torch.Tensor = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
+        if self.evaluation_class_ids is None:
+            evaluation_class_ids = tuple(range(self.num_classes))
+        else:
+            evaluation_class_ids = tuple(self.evaluation_class_ids)
+        if not evaluation_class_ids:
+            raise ValueError("evaluation_class_ids must not be empty")
+        if len(set(evaluation_class_ids)) != len(evaluation_class_ids):
+            raise ValueError("evaluation_class_ids must not contain duplicates")
+        if any(not 0 <= class_id < self.num_classes for class_id in evaluation_class_ids):
+            raise ValueError("evaluation_class_ids must contain valid class indices")
+        self.evaluation_class_ids = evaluation_class_ids
         self._sum_class_dice = torch.zeros(self.num_classes, dtype=torch.float64)
         self._sum_class_iou = torch.zeros(self.num_classes, dtype=torch.float64)
         self._active_per_class = torch.zeros(self.num_classes, dtype=torch.float64)
+        self._evaluation_mask = torch.zeros(self.num_classes, dtype=torch.bool)
+        self._evaluation_mask[list(evaluation_class_ids)] = True
 
     @torch.no_grad()
     def update(self, preds: torch.Tensor, labels: torch.Tensor) -> None:
@@ -106,19 +121,19 @@ class ConfusionAccumulator:
     def _update_multilabel(self, preds: torch.Tensor, labels: torch.Tensor) -> None:
         # preds/labels: (B, C, *spatial); flatten spatial
         B, C = preds.shape[0], preds.shape[1]
-        p = preds.reshape(B, C, -1).bool()
-        l = labels.reshape(B, C, -1).bool()
+        pred_masks = preds.reshape(B, C, -1).bool()
+        label_masks = labels.reshape(B, C, -1).bool()
         for i in range(B):
-            tp = (p[i] & l[i]).sum(dim=1).double()
-            pred_count = p[i].sum(dim=1).double()
-            label_count = l[i].sum(dim=1).double()
+            tp = (pred_masks[i] & label_masks[i]).sum(dim=1).double()
+            pred_count = pred_masks[i].sum(dim=1).double()
+            label_count = label_masks[i].sum(dim=1).double()
             fp = pred_count - tp
             fn = label_count - tp
             active = (pred_count > 0) | (label_count > 0)
             self._append_stats(tp, fp, fn, active)
 
     def _append_stats(self, tp: torch.Tensor, fp: torch.Tensor, fn: torch.Tensor, active: torch.Tensor) -> None:
-        active = active.bool()
+        active = active.bool() & self._evaluation_mask
         active_count = int(active.sum().item())
         if active_count < 1:
             return

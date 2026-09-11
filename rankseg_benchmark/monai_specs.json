@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "benchmarks": {
+    "monai_btcv_swin_v058_msd_pancreas": {
+      "dataset": {
+        "name": "Medical Segmentation Decathlon Task07 Pancreas",
+        "source_dataset_id": "msd_task07_pancreas",
+        "task_dir": "Task07_Pancreas",
+        "class_names": ["background", "pancreas"],
+        "split": {
+          "strategy": "fixed_case_ids",
+          "case_ids": [
+            "pancreas_010",
+            "pancreas_016",
+            "pancreas_041",
+            "pancreas_042",
+            "pancreas_043",
+            "pancreas_048",
+            "pancreas_056",
+            "pancreas_058",
+            "pancreas_064",
+            "pancreas_070",
+            "pancreas_092",
+            "pancreas_102",
+            "pancreas_107",
+            "pancreas_117",
+            "pancreas_127",
+            "pancreas_138",
+            "pancreas_148",
+            "pancreas_160",
+            "pancreas_191",
+            "pancreas_204"
+          ],
+          "note": "A fixed 20-case external test subset selected before running the BTCV checkpoint."
+        },
+        "source_label_foreground_ids": [1, 2],
+        "evaluation_design": "external_test",
+        "checkpoint_exposure": "none_by_declared_dataset_provenance",
+        "test_case_usage": {
+          "checkpoint_training": false,
+          "checkpoint_selection": false,
+          "postprocessing_parameter_selection": false
+        }
+      },
+      "bundle": {
+        "name": "swin_unetr_btcv_segmentation",
+        "version": "0.5.8",
+        "config": "configs/inference.json",
+        "checkpoint": {
+          "path": "models/model.pt",
+          "hash_type": "md5",
+          "hash_value": "50dd67a01b28a1d5487fd9ac27e682fb"
+        },
+        "network_optional_args": ["img_size"],
+        "supervised_training_dataset": "Beyond the Cranial Vault (BTCV)",
+        "supervised_training_dataset_id": "btcv",
+        "self_supervised_pretraining_datasets": [
+          "LUNA16",
+          "TCIA COVID-19",
+          "TCIA HNSCC",
+          "TCIA Colonography",
+          "LIDC-IDRI"
+        ],
+        "self_supervised_pretraining_dataset_ids": [
+          "luna16",
+          "tcia_covid19",
+          "tcia_hnscc",
+          "tcia_colonography",
+          "lidc_idri"
+        ]
+      },
+      "preprocessing": {
+        "orientation": "RAS",
+        "pixdim": [1.5, 1.5, 2.0],
+        "intensity": [-175.0, 250.0, 0.0, 1.0]
+      },
+      "inference": {
+        "roi_size": [96, 96, 96],
+        "sw_batch_size": 1,
+        "overlap": 0.5,
+        "amp": true
+      },
+      "output_transform": {
+        "type": "binary_one_vs_rest",
+        "model_num_classes": 14,
+        "foreground_channel": 11,
+        "foreground_name": "pancreas"
+      },
+      "activation": "softmax",
+      "coordinate_space": "resampled_model_space"
+    },
+    "monai_btcv_swin_v058_msd_spleen": {
+      "dataset": {
+        "name": "Medical Segmentation Decathlon Task09 Spleen",
+        "source_dataset_id": "msd_task09_spleen",
+        "task_dir": "Task09_Spleen",
+        "class_names": ["background", "spleen"],
+        "split": {
+          "strategy": "fixed_case_ids",
+          "case_ids": [
+            "spleen_56",
+            "spleen_59",
+            "spleen_6",
+            "spleen_60",
+            "spleen_61",
+            "spleen_62",
+            "spleen_63",
+            "spleen_8",
+            "spleen_9"
+          ],
+          "note": "A fixed 9-case external test subset selected before running the BTCV checkpoint."
+        },
+        "source_label_foreground_ids": [1],
+        "evaluation_design": "external_test",
+        "checkpoint_exposure": "none_by_declared_dataset_provenance",
+        "test_case_usage": {
+          "checkpoint_training": false,
+          "checkpoint_selection": false,
+          "postprocessing_parameter_selection": false
+        }
+      },
+      "bundle": {
+        "name": "swin_unetr_btcv_segmentation",
+        "version": "0.5.8",
+        "config": "configs/inference.json",
+        "checkpoint": {
+          "path": "models/model.pt",
+          "hash_type": "md5",
+          "hash_value": "50dd67a01b28a1d5487fd9ac27e682fb"
+        },
+        "network_optional_args": ["img_size"],
+        "supervised_training_dataset": "Beyond the Cranial Vault (BTCV)",
+        "supervised_training_dataset_id": "btcv",
+        "self_supervised_pretraining_datasets": [
+          "LUNA16",
+          "TCIA COVID-19",
+          "TCIA HNSCC",
+          "TCIA Colonography",
+          "LIDC-IDRI"
+        ],
+        "self_supervised_pretraining_dataset_ids": [
+          "luna16",
+          "tcia_covid19",
+          "tcia_hnscc",
+          "tcia_colonography",
+          "lidc_idri"
+        ]
+      },
+      "preprocessing": {
+        "orientation": "RAS",
+        "pixdim": [1.5, 1.5, 2.0],
+        "intensity": [-175.0, 250.0, 0.0, 1.0]
+      },
+      "inference": {
+        "roi_size": [96, 96, 96],
+        "sw_batch_size": 1,
+        "overlap": 0.5,
+        "amp": true
+      },
+      "output_transform": {
+        "type": "binary_one_vs_rest",
+        "model_num_classes": 14,
+        "foreground_channel": 1,
+        "foreground_name": "spleen"
+      },
+      "activation": "softmax",
+      "coordinate_space": "resampled_model_space"
+    }
+  }
+}

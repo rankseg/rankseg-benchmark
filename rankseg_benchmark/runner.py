@@ -15,6 +15,7 @@ from rankseg_benchmark.datasets import (
     DatasetSpec,
     get_dataset_size_from_cache,
     get_dataset_size_from_metadata,
+    get_local_artifact_size,
     iter_batches,
     iter_batches_with_metadata,
 )
@@ -29,6 +30,8 @@ class RunResult:
     method: str  # "argmax" / "rankseg-<solver>"
     confusion: ConfusionAccumulator | FoldMeanAccumulator
     timer: Timer
+    unit: str = "img"
+    evaluation_class_ids: tuple[int, ...] | None = None
 
     def summary(self) -> dict:
         s = self.confusion.summary()
@@ -45,6 +48,7 @@ class RunResult:
             "mean_ms": self.timer.mean_ms,
             "median_ms": self.timer.median_ms,
             "n_calls": self.timer.n_calls,
+            "unit": self.unit,
         }
         if "folds" in s:
             result["folds"] = s["folds"]
@@ -58,27 +62,67 @@ def _baseline_argmax(probs: torch.Tensor, output_mode: str) -> torch.Tensor:
 
 
 def _rankseg_output_mode(spec: DatasetSpec, solver: str) -> str:
-    if spec.output_mode == "multiclass" and spec.num_classes == 2 and solver in {"BA", "TRNA", "BA+TRNA"}:
+    if spec.rankseg_channels is not None and len(spec.rankseg_channels) != spec.num_classes:
+        if spec.output_mode == "multiclass" and len(spec.rankseg_channels) != 1:
+            raise ValueError("multiclass channel selection currently requires exactly one RankSEG channel")
+        return "multilabel"
+    if spec.output_mode == "multiclass" and spec.num_classes == 2 and solver.strip().upper() in {
+        "BA",
+        "TRNA",
+        "BA+TRNA",
+    }:
         return "multilabel"
     return spec.output_mode
+
+
+def _rankseg_channels(spec: DatasetSpec, rankseg_output_mode: str) -> tuple[int, ...]:
+    if spec.rankseg_channels is not None:
+        return spec.rankseg_channels
+    if spec.output_mode == "multiclass" and rankseg_output_mode == "multilabel":
+        if spec.num_classes != 2:
+            raise ValueError("automatic foreground-channel routing requires a two-class multiclass dataset")
+        return (1,)
+    return tuple(range(spec.num_classes))
 
 
 def _rankseg_predict(
     rankseg,
     probs: torch.Tensor,
     *,
-    dataset_output_mode: str,
+    spec: DatasetSpec,
     rankseg_output_mode: str,
 ) -> torch.Tensor:
-    if dataset_output_mode == "multiclass" and rankseg_output_mode == "multilabel":
-        return rankseg.predict(probs[:, 1:2])[:, 0].long()
-    return rankseg.predict(probs)
+    channels = _rankseg_channels(spec, rankseg_output_mode)
+    rankseg_probs = probs[:, channels]
+    prediction = rankseg.predict(rankseg_probs)
+    if spec.output_mode == "multiclass" and rankseg_output_mode == "multilabel":
+        if len(channels) != 1 or prediction.shape[1] != 1:
+            raise ValueError("multiclass conversion requires one selected RankSEG channel")
+        foreground_class = channels[0]
+        if foreground_class == spec.background_class_id:
+            raise ValueError("the selected RankSEG channel must not be the background class")
+        return torch.where(
+            prediction[:, 0].bool(),
+            foreground_class,
+            spec.background_class_id,
+        ).long()
+    if spec.output_mode == "multilabel" and len(channels) != spec.num_classes:
+        full_prediction = torch.zeros(
+            prediction.shape[0],
+            spec.num_classes,
+            *prediction.shape[2:],
+            dtype=prediction.dtype,
+            device=prediction.device,
+        )
+        full_prediction[:, channels] = prediction
+        return full_prediction
+    return prediction
 
 
 def _predict_timed_batch(
     probs: torch.Tensor,
     *,
-    dataset_output_mode: str,
+    spec: DatasetSpec,
     rankseg_output_mode: str,
     rankseg,
     base_timer: Timer,
@@ -86,12 +130,12 @@ def _predict_timed_batch(
 ) -> tuple[torch.Tensor, torch.Tensor]:
     batch_n = probs.size(0)
     with base_timer.measure(units=batch_n):
-        base_pred = _baseline_argmax(probs, dataset_output_mode)
+        base_pred = _baseline_argmax(probs, spec.output_mode)
     with rs_timer.measure(units=batch_n):
         rs_pred = _rankseg_predict(
             rankseg,
             probs,
-            dataset_output_mode=dataset_output_mode,
+            spec=spec,
             rankseg_output_mode=rankseg_output_mode,
         )
     return base_pred, rs_pred
@@ -134,10 +178,20 @@ def run_benchmark(
     batch_size: int = 8,
     cache_dataset: bool = False,
     cache_dir: str | os.PathLike[str] | None = None,
+    artifact_dir: str | os.PathLike[str] | None = None,
     progress: bool = True,
     rankseg_path: str | os.PathLike[str] | None = None,
 ) -> tuple[RunResult, RunResult]:
     """Run argmax baseline and RankSEG on the same data stream. Returns (baseline, rankseg)."""
+    if warmup < 0:
+        raise ValueError("warmup must be >= 0")
+    if batch_size < 1:
+        raise ValueError("batch_size must be >= 1")
+    if limit is not None and limit < 1:
+        raise ValueError("limit must be >= 1")
+    if spec.eval_unit == "volume" and batch_size != 1:
+        LOGGER.warning("Forcing batch_size=1 for volume-level latency and bounded memory use")
+        batch_size = 1
     LOGGER.info("Preparing benchmark runner")
     configure_rankseg_path(rankseg_path)
     LOGGER.info("Importing RankSEG")
@@ -155,7 +209,16 @@ def run_benchmark(
         LOGGER.info("Using device: %s", dev)
 
     rankseg_output_mode = _rankseg_output_mode(spec, solver)
-    if rankseg_output_mode != spec.output_mode:
+    rankseg_channels = _rankseg_channels(spec, rankseg_output_mode)
+    if spec.rankseg_channels is not None and len(spec.rankseg_channels) != spec.num_classes:
+        LOGGER.info(
+            "Dataset %s routes probability channels %s to RankSEG with output_mode=%s for solver=%s",
+            spec.name,
+            rankseg_channels,
+            rankseg_output_mode,
+            solver,
+        )
+    elif rankseg_output_mode != spec.output_mode:
         LOGGER.info(
             "Using RankSEG output_mode=%s for solver=%s on binary multiclass dataset %s: "
             "BA/TRNA-style solvers operate on binary masks, so RankSEG receives only the foreground "
@@ -186,18 +249,33 @@ def run_benchmark(
             batch_size=batch_size,
             cache_dataset=cache_dataset,
             cache_dir=str(cache_dir) if cache_dir is not None else None,
+            artifact_dir=str(artifact_dir) if artifact_dir is not None else None,
             progress=progress,
         )
 
-    base_conf = ConfusionAccumulator(spec.num_classes, spec.output_mode, spec.ignore_index)
-    rs_conf = ConfusionAccumulator(spec.num_classes, spec.output_mode, spec.ignore_index)
+    base_conf = ConfusionAccumulator(
+        spec.num_classes,
+        spec.output_mode,
+        spec.ignore_index,
+        spec.evaluation_class_ids,
+    )
+    rs_conf = ConfusionAccumulator(
+        spec.num_classes,
+        spec.output_mode,
+        spec.ignore_index,
+        spec.evaluation_class_ids,
+    )
     base_timer = Timer(use_cuda=use_cuda)
     rs_timer = Timer(use_cuda=use_cuda)
+    sample_unit = "volume" if spec.eval_unit == "volume" else "img"
 
     progress_total = limit
     if progress_total is None:
-        progress_total = get_dataset_size_from_metadata(spec)
-    if cache_dataset and progress_total is None:
+        if spec.source_type == "local_artifacts":
+            progress_total = get_local_artifact_size(spec, artifact_dir=artifact_dir)
+        else:
+            progress_total = get_dataset_size_from_metadata(spec)
+    if spec.source_type == "huggingface" and cache_dataset and progress_total is None:
         progress_total = get_dataset_size_from_cache(spec, cache_dir=str(cache_dir) if cache_dir is not None else None)
     if progress and progress_total is None:
         LOGGER.info("Progress bar will show processed images and throughput; ETA requires --limit or dataset metadata")
@@ -209,9 +287,10 @@ def run_benchmark(
         batch_size=batch_size,
         cache_dataset=cache_dataset,
         cache_dir=str(cache_dir) if cache_dir is not None else None,
+        artifact_dir=artifact_dir,
     )
     progress_bar = (
-        tqdm(desc=f"{spec.name} [{solver}/{metric}]", total=progress_total, unit="img", dynamic_ncols=True)
+        tqdm(desc=f"{spec.name} [{solver}/{metric}]", total=progress_total, unit=sample_unit, dynamic_ncols=True)
         if progress
         else None
     )
@@ -244,17 +323,10 @@ def run_benchmark(
                 _ = _rankseg_predict(
                     rankseg,
                     probs[:warmup_n],
-                    dataset_output_mode=spec.output_mode,
+                    spec=spec,
                     rankseg_output_mode=rankseg_output_mode,
                 )
                 warmed += warmup_n
-                if warmup_n == batch_n:
-                    if progress_bar is not None:
-                        progress_bar.update(progress_n)
-                    continue
-                probs = probs[warmup_n:]
-                label = label[warmup_n:]
-                batch_n = probs.size(0)
 
             LOGGER.debug(
                 "Timed batch %d: batch_size=%d probs_shape=%s label_shape=%s",
@@ -265,7 +337,7 @@ def run_benchmark(
             )
             base_pred, rs_pred = _predict_timed_batch(
                 probs,
-                dataset_output_mode=spec.output_mode,
+                spec=spec,
                 rankseg_output_mode=rankseg_output_mode,
                 rankseg=rankseg,
                 base_timer=base_timer,
@@ -278,10 +350,13 @@ def run_benchmark(
             processed += batch_n
             if processed == batch_n or processed // 25 > previous_processed // 25:
                 LOGGER.info(
-                    "Processed %d timed samples: argmax_mean=%.2f ms/img RankSEG_mean=%.2f ms/img",
+                    "Processed %d timed %ss: argmax_mean=%.2f ms/%s RankSEG_mean=%.2f ms/%s",
                     processed,
+                    sample_unit,
                     base_timer.mean_ms,
+                    sample_unit,
                     rs_timer.mean_ms,
+                    sample_unit,
                 )
             if progress_bar is not None:
                 progress_bar.update(progress_n)
@@ -295,21 +370,31 @@ def run_benchmark(
         processed,
     )
     LOGGER.info(
-        "Timing summary: argmax mean=%.2f ms/img median=%.2f ms/img samples=%d batches=%d | "
-        "RankSEG mean=%.2f ms/img median=%.2f ms/img samples=%d batches=%d",
+        "Timing summary: argmax mean=%.2f ms/%s median=%.2f ms/%s samples=%d batches=%d | "
+        "RankSEG mean=%.2f ms/%s median=%.2f ms/%s samples=%d batches=%d",
         base_timer.mean_ms,
+        sample_unit,
         base_timer.median_ms,
+        sample_unit,
         base_timer.n_calls,
         base_timer.n_batches,
         rs_timer.mean_ms,
+        sample_unit,
         rs_timer.median_ms,
+        sample_unit,
         rs_timer.n_calls,
         rs_timer.n_batches,
     )
 
     return (
-        RunResult("argmax", base_conf, base_timer),
-        RunResult(f"rankseg-{solver}", rs_conf, rs_timer),
+        RunResult("argmax", base_conf, base_timer, unit=sample_unit, evaluation_class_ids=spec.evaluation_class_ids),
+        RunResult(
+            f"rankseg-{solver}",
+            rs_conf,
+            rs_timer,
+            unit=sample_unit,
+            evaluation_class_ids=spec.evaluation_class_ids,
+        ),
     )
 
 
@@ -326,6 +411,7 @@ def _run_case_benchmark(
     batch_size: int,
     cache_dataset: bool,
     cache_dir: str | None,
+    artifact_dir: str | None,
     progress: bool,
 ) -> tuple[RunResult, RunResult]:
     if spec.num_folds is None or spec.num_folds < 1:
@@ -387,6 +473,7 @@ def _run_case_benchmark(
             batch_size=batch_size,
             cache_dataset=cache_dataset,
             cache_dir=cache_dir,
+            artifact_dir=artifact_dir,
         )
 
         try:
@@ -399,22 +486,14 @@ def _run_case_benchmark(
                     _ = _rankseg_predict(
                         rankseg,
                         probs[:warmup_n],
-                        dataset_output_mode=spec.output_mode,
+                        spec=spec,
                         rankseg_output_mode=rankseg_output_mode,
                     )
                     warmed += warmup_n
-                    if warmup_n == batch_n:
-                        if progress_bar is not None:
-                            progress_bar.update(progress_n)
-                        continue
-                    probs = probs[warmup_n:]
-                    label = label[warmup_n:]
-                    metadata = metadata[warmup_n:]
-                    batch_n = probs.size(0)
 
                 base_pred, rs_pred = _predict_timed_batch(
                     probs,
-                    dataset_output_mode=spec.output_mode,
+                    spec=spec,
                     rankseg_output_mode=rankseg_output_mode,
                     rankseg=rankseg,
                     base_timer=base_timer,
@@ -463,8 +542,14 @@ def _run_case_benchmark(
     )
 
     return (
-        RunResult("argmax", base_conf, base_timer),
-        RunResult(f"rankseg-{solver}", rs_conf, rs_timer),
+        RunResult("argmax", base_conf, base_timer, unit="slice", evaluation_class_ids=spec.evaluation_class_ids),
+        RunResult(
+            f"rankseg-{solver}",
+            rs_conf,
+            rs_timer,
+            unit="slice",
+            evaluation_class_ids=spec.evaluation_class_ids,
+        ),
     )
 
 
@@ -499,7 +584,7 @@ def format_report(
         tablefmt="github",
     )
 
-    runtime_unit = "slice" if "folds" in b else "img"
+    runtime_unit = b["unit"]
     runtime_rows = [
         [f"mean ms / {runtime_unit}", f"{b['mean_ms']:.2f}", f"{r['mean_ms']:.2f}", f"{r['mean_ms'] - b['mean_ms']:+.2f}"],
         [f"median ms / {runtime_unit}", f"{b['median_ms']:.2f}", f"{r['median_ms']:.2f}",
@@ -516,9 +601,10 @@ def format_report(
         return report
 
     n_classes = b["per_class_dice"].numel()
-    active = b["active_per_class"]  # same across baseline / rankseg (depends on label / pred)
+    class_ids = baseline.evaluation_class_ids or tuple(range(n_classes))
+    active = b["active_per_class"]
     rows = []
-    for c in range(n_classes):
+    for c in class_ids:
         name = class_names[c] if class_names and c < len(class_names) else str(c)
         rows.append([
             c,
@@ -531,11 +617,12 @@ def format_report(
             f"{100.0 * r['per_class_iou'][c].item():.2f}",
             f"{100.0 * (r['per_class_iou'][c] - b['per_class_iou'][c]).item():+.2f}",
         ])
+    active_unit = "volumes" if runtime_unit == "volume" else "slices" if runtime_unit == "slice" else "imgs"
     per_class_tbl = tabulate(
         rows,
-        headers=["cls", "name", "#imgs (active)",
+        headers=["cls", "name", f"#{active_unit} (active)",
                  "Dice (base)", "Dice (RankSEG)", "Dice Improvement",
                  "IoU (base)", "IoU (RankSEG)", "IoU Improvement"],
         tablefmt="github",
     )
-    return report + "\n\n## Per-class gain breakdown (averaged over active images)\n\n" + per_class_tbl
+    return report + "\n\n## Per-class gain breakdown (averaged over active evaluation units)\n\n" + per_class_tbl

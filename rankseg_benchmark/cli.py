@@ -86,6 +86,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional Hugging Face datasets cache directory used with --cache-dataset.",
     )
     p.add_argument(
+        "--artifact-dir",
+        type=Path,
+        default=None,
+        help="Generated local artifact directory required by MONAI benchmark targets.",
+    )
+    p.add_argument(
         "--per-class",
         action="store_true",
         help="Also print per-class Dice/IoU gain breakdown.",
@@ -133,25 +139,40 @@ def main(argv: list[str] | None = None) -> int:
     if args.list_datasets:
         for name in list_datasets():
             spec = REGISTRY[name]
-            print(f"  {name:<12} {spec.num_classes:>4} classes  {spec.output_mode:<10}  {spec.description}")
+            print(f"  {name:<30} {spec.num_classes:>4} classes  {spec.display_mode:<10}  {spec.description}")
         return 0
 
     if not args.dataset:
         parser.error("--dataset is required (or pass --list-datasets to see options).")
 
     spec = get_spec(args.dataset)
+    if spec.source_type == "local_artifacts":
+        if args.artifact_dir is None:
+            parser.error(f"--artifact-dir is required for dataset {spec.name}")
+        if args.cache_dataset:
+            parser.error("--cache-dataset only applies to Hugging Face datasets")
+        if args.batch_size != 1:
+            LOGGER.info("Using batch_size=1 for volume-level MONAI artifacts")
+            args.batch_size = 1
+    elif args.artifact_dir is not None:
+        parser.error("--artifact-dir only applies to local artifact datasets")
     LOGGER.info("Starting RankSEG benchmark")
     LOGGER.info(
-        "Configuration: dataset=%s split=%s data_dir=%s classes=%d mode=%s ignore_index=%s",
+        "Configuration: dataset=%s split=%s data_dir=%s classes=%d mode=%s spatial_dims=%d "
+        "rankseg_channels=%s evaluation_class_ids=%s ignore_index=%s",
         spec.name,
         spec.hf_split,
         spec.hf_data_dir or "<repo root>",
         spec.num_classes,
         spec.output_mode,
+        spec.spatial_dims,
+        spec.rankseg_channels,
+        spec.evaluation_class_ids,
         spec.ignore_index,
     )
     LOGGER.info(
-        "Run options: solver=%s metric=%s device=%s limit=%s warmup=%d batch_size=%d cache_dataset=%s cache_dir=%s rankseg_path=%s",
+        "Run options: solver=%s metric=%s device=%s limit=%s warmup=%d batch_size=%d cache_dataset=%s "
+        "cache_dir=%s artifact_dir=%s rankseg_path=%s",
         args.solver,
         args.metric,
         args.device,
@@ -160,6 +181,7 @@ def main(argv: list[str] | None = None) -> int:
         args.batch_size,
         args.cache_dataset,
         _display_cache_dir(args.cache_dir),
+        args.artifact_dir or "<not set>",
         args.rankseg_path or "<installed package or RANKSEG_PATH>",
     )
     baseline, rs = run_benchmark(
@@ -172,10 +194,18 @@ def main(argv: list[str] | None = None) -> int:
         batch_size=args.batch_size,
         cache_dataset=args.cache_dataset,
         cache_dir=args.cache_dir,
+        artifact_dir=args.artifact_dir,
         rankseg_path=args.rankseg_path,
     )
 
-    print(format_report(baseline, rs, per_class=args.per_class))
+    print(
+        format_report(
+            baseline,
+            rs,
+            class_names=list(spec.class_names) if spec.class_names is not None else None,
+            per_class=args.per_class,
+        )
+    )
 
     if args.json_out:
         LOGGER.info("Serializing full benchmark results to JSON: %s", args.json_out)
@@ -188,7 +218,11 @@ def main(argv: list[str] | None = None) -> int:
             "batch_size": args.batch_size,
             "cache_dataset": args.cache_dataset,
             "cache_dir": str(args.cache_dir) if args.cache_dir else None,
+            "artifact_dir": str(args.artifact_dir) if args.artifact_dir else None,
             "rankseg_path": str(args.rankseg_path) if args.rankseg_path else None,
+            "spatial_dims": spec.spatial_dims,
+            "rankseg_channels": spec.rankseg_channels,
+            "evaluation_class_ids": spec.evaluation_class_ids,
             "baseline": _serialize(baseline.summary()),
             "rankseg": _serialize(rs.summary()),
         }

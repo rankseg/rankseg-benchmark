@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Reproducible benchmark for RankSEG: performance (Dice/IoU) and runtime on pre-computed probability masks."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "BSD-3-Clause" }
+license = "BSD-3-Clause"
 authors = [{ name = "RankSEG Benchmark Contributors" }]
 dependencies = [
     "rankseg",
@@ -21,14 +21,21 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "ruff>=0.4"]
+dev = ["pytest>=7", "ruff>=0.4", "Pillow>=10"]
+monai = ["monai>=1.4", "nibabel>=5.2", "PyYAML>=6", "einops>=0.7"]
+demo = ["Pillow>=10"]
 
 [project.scripts]
 rankseg-bench = "rankseg_benchmark.cli:main"
+rankseg-monai-cache = "rankseg_benchmark.monai_cache:main"
+rankseg-monai-demo = "rankseg_benchmark.demo:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["rankseg_benchmark*"]
+
+[tool.setuptools.package-data]
+rankseg_benchmark = ["monai_specs.json"]
 
 [tool.ruff]
 line-length = 120

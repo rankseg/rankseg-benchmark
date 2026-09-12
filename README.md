@@ -12,14 +12,19 @@ stage for users who want to generate probabilities from the pinned checkpoints.
 
 ## Quick start
 
+Use Python 3.10+ and install this checkout to get the MONAI cache and demo
+commands described below. RankSEG 0.0.6 is the current release used for validation.
+
 ```bash
-pip install rankseg-benchmark
+git clone https://github.com/rankseg/rankseg-benchmark.git
+cd rankseg-benchmark
+python -m pip install -e . "rankseg==0.0.6"
 
 # Run RankSEG vs. argmax on ADE20K (downloads pre-computed probs from Hugging Face)
 rankseg-bench --dataset ade20k --solver RMA --metric dice
 ```
 
-You'll get a table like:
+Illustrative output format (not an additional benchmark run):
 
 ```
 ## Performance
@@ -40,7 +45,7 @@ You'll get a table like:
 ## Benchmark results
 
 Performance numbers are reported as percentages. Improvement is RankSEG minus
-the argmax baseline.
+the argmax baseline, in percentage points, calculated before rounding.
 
 ### Pascal VOC
 
@@ -98,7 +103,7 @@ mean latencies were 3.30 ms/volume for Pancreas and 3.47 ms/volume for Spleen.
 The small Spleen decline is reported intentionally: post-processing gains are
 not guaranteed on every already-well-calibrated cohort.
 
-For the release regression, the published RankSEG 0.0.5 wheel and the 0.0.6
+During 0.0.6 release validation, the published RankSEG 0.0.5 wheel and the 0.0.6
 candidate were run on the same cached tensors with the Dice objective. Their
 Dice and IoU results are exactly equal on both cohorts. Mean RankSEG latency
 decreased from 4.22 to 3.71 ms/volume on Pancreas and from 4.48 to 3.93
@@ -161,7 +166,7 @@ and host/device transfers are not included in decoder timing.
 Install the optional generator dependencies and list the pinned targets:
 
 ```bash
-pip install "rankseg-benchmark[monai]"
+python -m pip install -e ".[monai]"
 rankseg-monai-cache --list
 ```
 
@@ -239,13 +244,19 @@ device.
 
 The generator does not download or redistribute the medical datasets. Users
 must obtain them under their original licenses and pass the extracted task
-directory explicitly.
+directory explicitly. Checkpoint weights, downloaded Bundles, datasets, and
+generated probability caches are not distributed through this Git repository.
+Their local paths and common file formats are excluded by `.gitignore`; the
+version, checksum, and evaluation protocol declarations remain in
+[`monai_specs.json`](./rankseg_benchmark/monai_specs.json).
 
-To reproduce the transparent light- and dark-theme medical visualizations used
-by the RankSEG README from the complete Pancreas artifact cache:
+The README medical figure uses three large panels (ground truth, argmax,
+RankSEG). Dice values in the image describe that slice; the CLI also prints
+the separate 20-volume mean for the caption. Both themes have transparent
+backgrounds. Reproduce them from the complete Pancreas artifact cache:
 
 ```bash
-pip install "rankseg-benchmark[monai,demo]"
+python -m pip install -e ".[monai,demo]"
 rankseg-monai-demo \
     --artifact-dir ./artifacts/monai_btcv_swin_v058_msd_pancreas \
     --dataset-root /data/Task07_Pancreas \
@@ -269,23 +280,16 @@ post-processing parameters, or the reported 20-volume result.
 
 The bundled pre-computed probability dumps are loaded from
 [`ZixunWang/rankseg-benchmark`](https://huggingface.co/datasets/ZixunWang/rankseg-benchmark),
-using its `pascal_voc`, `ade20k`, and `cityscapes` data directories. If you
-want to benchmark **your own** model's probabilities, generate a dump with the
-provided script and point the registry at your repo:
+using its `pascal_voc`, `ade20k`, `cityscapes`, and `kits/fold*` data directories.
+For **your own** model, run inference with your existing pipeline and create
+dataset rows containing `probs` with shape `(classes, *spatial)` and `label`
+with shape `(*spatial)` for multiclass labels, or `(classes, *spatial)` for
+multilabel masks. Probabilities must be finite and in `[0, 1]`; labels and
+probabilities must share the same spatial grid. This repository supplies the
+MONAI generator above, not a generic model-inference script.
 
-```bash
-python scripts/generate_probs.py \
-    --model deeplabv3plus_voc \
-    --images-dir /path/to/voc/JPEGImages \
-    --labels-dir /path/to/voc/SegmentationClass \
-    --split-file /path/to/voc/ImageSets/Segmentation/val.txt \
-    --num-classes 21 \
-    --output ./probs_voc_mine
-```
-
-Then either upload the directory to a Hugging Face dataset repo and add an
-entry to `rankseg_benchmark/datasets.py`, or call the benchmark internals
-directly:
+Once those rows are hosted in your Hugging Face dataset repository, add an
+entry to `rankseg_benchmark/datasets.py`, or use the Python API directly:
 
 ```python
 from rankseg_benchmark.datasets import DatasetSpec

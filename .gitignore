@@ -9,3 +9,30 @@ dist/
 .ruff_cache/
 results_*.json
 probs_*/
+
+# Downloaded model bundles, checkpoints, and local probability/data caches.
+# Keep only the version/hash declarations in monai_specs.json under Git.
+monai_bundles/
+checkpoints/
+artifacts/
+data/
+datasets/
+.cache/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.bin
+*.npy
+*.npz
+*.parquet
+*.arrow
+*.nii
+*.nii.gz
+*.dcm
+*.h5
+*.hdf5
+
+# Locally rendered medical figures (reproducible with rankseg-monai-demo).
+monai_pancreas_rankseg*.png

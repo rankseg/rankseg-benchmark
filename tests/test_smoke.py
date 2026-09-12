@@ -15,7 +15,16 @@ import torch
 from PIL import Image
 
 from rankseg_benchmark.datasets import REGISTRY, DatasetSpec, _decode_label, _decode_probs, iter_batches
-from rankseg_benchmark.demo import DemoSelection, _validate_demo_manifest, render_figure
+from rankseg_benchmark.demo import (
+    DEMO_THEMES,
+    DemoSelection,
+    _base_image,
+    _contour,
+    _mask_image,
+    _overlay,
+    _validate_demo_manifest,
+    render_figure,
+)
 from rankseg_benchmark.metrics import ConfusionAccumulator, FoldMeanAccumulator, MedicalCaseAccumulator
 from rankseg_benchmark.monai_cache import (
     EXTERNAL_EXPOSURE_DECLARATION,
@@ -374,7 +383,8 @@ def test_monai_external_test_provenance_rejects_checkpoint_source_overlap():
         _validate_external_test_provenance("overlap-fixture", spec)
 
 
-def test_monai_demo_renderer_is_deterministic(tmp_path):
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_monai_demo_renderer_is_deterministic(tmp_path, theme):
     label = torch.zeros((64, 64), dtype=torch.bool)
     label[20:44, 18:48] = True
     baseline = label.clone()
@@ -393,26 +403,34 @@ def test_monai_demo_renderer_is_deterministic(tmp_path):
         corrected=84,
         introduced=16,
     )
-    summary = {
-        "baseline_dice": 0.9,
-        "rankseg_dice": 0.98,
-        "baseline_iou": 0.82,
-        "rankseg_iou": 0.96,
-        "num_volumes": 2,
-    }
     image_volume = torch.linspace(0, 1, 64 * 64 * 3).reshape(64, 64, 3)
     first = tmp_path / "first.png"
     second = tmp_path / "second.png"
 
-    render_figure(selected, summary, image_volume, first)
-    render_figure(selected, summary, image_volume, second)
+    render_figure(selected, image_volume, first, theme=theme)
+    render_figure(selected, image_volume, second, theme=theme)
 
     assert first.read_bytes() == second.read_bytes()
     with Image.open(first) as image:
-        assert image.size == (2048, 690)
+        assert image.size == (1440, 624)
         assert image.mode == "RGBA"
         assert image.getpixel((0, 0))[3] == 0
-        assert image.getpixel((236, 345))[3] == 255
+        # With the padding used here, the entire fixture is the shared ROI.
+        # Check the CT, orientation, and each overlay pixel-for-pixel, not just
+        # the canvas dimensions. The two themes must not alter medical pixels.
+        base = _base_image(np.rot90(image_volume[:, :, 1].numpy()), (440, 440))
+        masks = [_mask_image(np.rot90(mask.numpy()), (440, 440)) for mask in (label, baseline, rankseg)]
+        expected_panels = [
+            _overlay(base, masks[0], (48, 211, 190), 145),
+            _contour(_overlay(base, masks[1], (251, 146, 60), 125), masks[0], (242, 246, 255)),
+            _contour(_overlay(base, masks[2], (45, 212, 145), 135), masks[0], (242, 246, 255)),
+        ]
+        for x, expected in zip((36, 500, 964), expected_panels, strict=True):
+            # Exclude the rounded frame at the very edge.
+            actual = image.crop((x + 4, 96, x + 436, 528))
+            assert np.array_equal(np.asarray(actual), np.asarray(expected.convert("RGBA").crop((4, 4, 436, 436))))
+        title_pixels = np.asarray(image.crop((0, 0, 1440, 80)))
+        assert np.any(np.all(title_pixels == DEMO_THEMES[theme]["primary"], axis=-1))
 
 
 def test_monai_demo_requires_complete_predeclared_cohort():
@@ -497,7 +515,12 @@ def test_monai_software_metadata_is_weights_only_safe(tmp_path):
     assert loaded["metadata"]["software"]["torch"] == str(torch.__version__)
 
 
-def test_local_monai_3d_artifact_runs_end_to_end(tmp_path):
+@pytest.mark.parametrize("metric", ["dice", "iou"])
+@pytest.mark.parametrize(
+    "device",
+    ["cpu", pytest.param("cuda", marks=pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA unavailable"))],
+)
+def test_local_monai_3d_artifact_runs_end_to_end(tmp_path, metric, device):
     spec = REGISTRY["monai_btcv_swin_v058_msd_spleen"]
     label = torch.tensor(
         [
@@ -538,7 +561,8 @@ def test_local_monai_3d_artifact_runs_end_to_end(tmp_path):
     baseline, rankseg = run_benchmark(
         spec,
         artifact_dir=tmp_path,
-        device="cpu",
+        device=device,
+        metric=metric,
         warmup=1,
         batch_size=1,
         progress=False,
@@ -548,6 +572,8 @@ def test_local_monai_3d_artifact_runs_end_to_end(tmp_path):
     assert rankseg.confusion.n_images == 1
     assert baseline.summary()["mDice"] == 1.0
     assert rankseg.summary()["mDice"] == 1.0
+    assert baseline.summary()["mIoU"] == 1.0
+    assert rankseg.summary()["mIoU"] == 1.0
     assert baseline.summary()["unit"] == "volume"
     report = format_report(
         baseline,

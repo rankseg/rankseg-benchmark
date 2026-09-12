@@ -223,12 +223,12 @@ def _square_crop_bounds(mask: np.ndarray, shape: tuple[int, int], padding: int =
 
 def render_figure(
     selected: DemoSelection,
-    summary: dict[str, float],
     image_volume: torch.Tensor,
     output_path: Path,
     *,
     theme: str = "light",
 ) -> None:
+    """Render three large comparison panels; cohort results belong in the caption."""
     colors = DEMO_THEMES[theme]
     image_slice = image_volume[:, :, selected.slice_index].numpy()
     label = selected.label.numpy()
@@ -242,70 +242,28 @@ def render_figure(
     baseline = np.rot90(baseline[crop])
     rankseg = np.rot90(rankseg[crop])
 
-    panel_size = (360, 360)
+    panel_size = (440, 440)
     gt_mask = _mask_image(label, panel_size)
     baseline_mask = _mask_image(baseline, panel_size)
     rankseg_mask = _mask_image(rankseg, panel_size)
-    corrected_mask = _mask_image((baseline != label) & (rankseg == label), panel_size)
-    introduced_mask = _mask_image((baseline == label) & (rankseg != label), panel_size)
     base = _base_image(image_slice, panel_size)
 
     ground_truth = _overlay(base, gt_mask, (48, 211, 190), 145)
     argmax = _contour(_overlay(base, baseline_mask, (251, 146, 60), 125), gt_mask, (242, 246, 255))
     optimized = _contour(_overlay(base, rankseg_mask, (45, 212, 145), 135), gt_mask, (242, 246, 255))
-    changes = _overlay(base, corrected_mask, (45, 226, 145), 210)
-    changes = _overlay(changes, introduced_mask, (245, 88, 111), 225)
-
-    canvas = Image.new("RGBA", (2048, 690), (0, 0, 0, 0))
+    canvas = Image.new("RGBA", (1440, 624), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
-    _draw_theme_text(
-        draw,
-        (48, 30),
-        "RankSEG on 3D CT",
-        font=_font(48, bold=True),
-        fill=colors["primary"],
-    )
-    _draw_theme_text(
-        draw,
-        (50, 91),
-        "MONAI BTCV Swin UNETR -> MSD Pancreas external test  |  same probabilities, no retraining",
-        font=_font(22),
-        fill=colors["muted"],
-    )
-    metric_text = (
-        f"{int(summary['num_volumes'])}-volume Dice  "
-        f"{summary['baseline_dice'] * 100:.2f}  ->  {summary['rankseg_dice'] * 100:.2f}  "
-        f"(+{(summary['rankseg_dice'] - summary['baseline_dice']) * 100:.2f})"
-    )
-    metric_box = (1420, 35, 1998, 100)
-    draw.rounded_rectangle(metric_box, radius=18, outline=(45, 212, 145, 255), width=3)
-    _draw_theme_text(
-        draw,
-        (1451, 55),
-        metric_text,
-        font=_font(19, bold=True),
-        fill=colors["primary"],
-    )
-
-    panels = [base, ground_truth, argmax, optimized, changes]
-    titles = [
-        "Axial CT ROI",
-        "Ground truth",
-        f"Argmax  Dice {selected.baseline_dice * 100:.1f}",
-        f"RankSEG  Dice {selected.rankseg_dice * 100:.1f}",
-        "Pixel-level change",
-    ]
+    panels = [ground_truth, argmax, optimized]
+    titles = ["Ground truth", "Argmax", "RankSEG"]
     subtitles = [
-        f"{selected.case_id} / slice {selected.slice_index}",
-        "pancreas + tumor",
-        "white = GT contour",
-        f"+{(selected.rankseg_dice - selected.baseline_dice) * 100:.1f} points",
-        f"{selected.corrected} corrected / {selected.introduced} introduced",
+        "Pancreas + tumor",
+        f"Dice {selected.baseline_dice * 100:.1f}",
+        f"Dice {selected.rankseg_dice * 100:.1f}",
     ]
-    panel_width = 360
-    gap = 34
-    first_x = 56
-    panel_y = 165
+    panel_width = panel_size[0]
+    gap = 24
+    first_x = 36
+    panel_y = 92
     for index, (panel, title, subtitle) in enumerate(zip(panels, titles, subtitles, strict=True)):
         x = first_x + index * (panel_width + gap)
         canvas.paste(panel.convert("RGBA"), (x, panel_y))
@@ -315,56 +273,24 @@ def render_figure(
             outline=colors["border"],
             width=2,
         )
-        title_box = draw.textbbox((0, 0), title, font=_font(22, bold=True))
+        title_box = draw.textbbox((0, 0), title, font=_font(40, bold=True))
         title_width = title_box[2] - title_box[0]
         _draw_theme_text(
             draw,
-            (x + (panel_width - title_width) / 2, 540),
+            (x + (panel_width - title_width) / 2, 22),
             title,
-            font=_font(22, bold=True),
+            font=_font(40, bold=True),
             fill=colors["primary"],
         )
-        subtitle_box = draw.textbbox((0, 0), subtitle, font=_font(20))
+        subtitle_box = draw.textbbox((0, 0), subtitle, font=_font(34))
         subtitle_width = subtitle_box[2] - subtitle_box[0]
         _draw_theme_text(
             draw,
-            (x + (panel_width - subtitle_width) / 2, 575),
+            (x + (panel_width - subtitle_width) / 2, 554),
             subtitle,
-            font=_font(20),
+            font=_font(34),
             fill=colors["muted"],
         )
-
-    legend_y = 626
-    _draw_theme_text(
-        draw,
-        (82, legend_y),
-        "Change map:",
-        font=_font(17, bold=True),
-        fill=colors["primary"],
-    )
-    draw.ellipse((222, legend_y + 2, 238, legend_y + 18), fill=(45, 226, 145, 255))
-    _draw_theme_text(
-        draw,
-        (248, legend_y),
-        "error corrected",
-        font=_font(17),
-        fill=colors["muted"],
-    )
-    draw.ellipse((430, legend_y + 2, 446, legend_y + 18), fill=(245, 88, 111, 255))
-    _draw_theme_text(
-        draw,
-        (456, legend_y),
-        "error introduced",
-        font=_font(17),
-        fill=colors["muted"],
-    )
-    _draw_theme_text(
-        draw,
-        (1550, legend_y),
-        "Research visualization - not for clinical use",
-        font=_font(16),
-        fill=colors["muted"],
-    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(output_path, format="PNG", optimize=True)
@@ -405,7 +331,6 @@ def main(argv: list[str] | None = None) -> int:
         raise ValueError("Reprocessed source label does not exactly match the artifact label")
     render_figure(
         selected,
-        summary,
         image_volume,
         args.output.expanduser().resolve(),
         theme=args.theme,
@@ -413,6 +338,10 @@ def main(argv: list[str] | None = None) -> int:
     print(
         f"Wrote {args.output} from {selected.case_id} slice {selected.slice_index}; "
         f"slice Dice {selected.baseline_dice:.6f} -> {selected.rankseg_dice:.6f}"
+    )
+    print(
+        f"{int(summary['num_volumes'])}-volume mean Dice "
+        f"{summary['baseline_dice']:.6f} -> {summary['rankseg_dice']:.6f}"
     )
     return 0
 

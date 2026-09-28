@@ -1,0 +1,41 @@
+name: Benchmark suites
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [quick, nnunet]
+    env:
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install CPU dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e ".[dev]" "rankseg==0.0.7"
+      - name: Install optional nnU-Net dependencies
+        if: matrix.suite == 'nnunet'
+        run: python -m pip install -e ".[nnunet]"
+      - name: Test Quick, MONAI helpers, and entry points
+        if: matrix.suite == 'quick'
+        run: python -m pytest tests/quick tests/monai tests/common -q
+      - name: Test nnU-Net and verify published evidence
+        if: matrix.suite == 'nnunet'
+        run: |
+          python -m pytest tests/nnunet -q
+          rankseg-bench nnunet verify-evidence evidence/nnunet
+          for script in scripts/nnunet/*.sh; do bash -n "$script"; done

@@ -4,6 +4,8 @@ __pycache__/
 build/
 dist/
 .venv/
+.venv-*/
+env/
 .env
 .pytest_cache/
 .ruff_cache/
@@ -16,6 +18,11 @@ monai_bundles/
 checkpoints/
 artifacts/
 data/
+work/
+outputs/
+downloads/
+coverage.xml
+.coverage*
 datasets/
 .cache/
 *.pt

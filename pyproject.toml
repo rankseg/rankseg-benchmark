@@ -1,14 +1,15 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rankseg-benchmark"
 version = "0.1.0"
-description = "Reproducible benchmark for RankSEG: performance (Dice/IoU) and runtime on pre-computed probability masks."
+description = "Reproducible RankSEG benchmarks: hosted probabilities, MONAI, and nnU-Net."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "BSD-3-Clause"
+license = "BSD-3-Clause AND Apache-2.0"
+license-files = ["LICENSE", "LICENSES/*.txt", "NOTICE.md"]
 authors = [{ name = "RankSEG Benchmark Contributors" }]
 dependencies = [
     "rankseg",
@@ -23,19 +24,27 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7", "ruff>=0.4", "Pillow>=10"]
 monai = ["monai>=1.4", "nibabel>=5.2", "PyYAML>=6", "einops>=0.7"]
+nnunet = ["nibabel>=5.0", "pandas>=2.0", "PyYAML>=6.0", "scipy>=1.10", "SimpleITK>=2.2", "scikit-learn>=1.2", "requests>=2.28", "nnunet==1.7.1"]
+nnunet-v2 = ["nnunetv2==2.6.2"]
+test = ["pytest>=7", "Pillow>=10"]
 demo = ["Pillow>=10"]
 
 [project.scripts]
 rankseg-bench = "rankseg_benchmark.cli:main"
-rankseg-monai-cache = "rankseg_benchmark.monai_cache:main"
-rankseg-monai-demo = "rankseg_benchmark.demo:main"
+rankseg-monai-cache = "rankseg_benchmark.monai.cache:main"
+rankseg-monai-demo = "rankseg_benchmark.monai.demo:main"
+rankseg-nnunet-bench = "rankseg_benchmark.nnunet.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["rankseg_benchmark*"]
+include = ["rankseg_benchmark*", "rankseg_nnunet_bench*"]
 
 [tool.setuptools.package-data]
-rankseg_benchmark = ["monai_specs.json"]
+"rankseg_benchmark.monai" = ["monai_specs.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
 
 [tool.ruff]
 line-length = 120

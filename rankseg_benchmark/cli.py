@@ -1,254 +1,39 @@
-"""Command-line entry: ``rankseg-bench --dataset X --solver Y``."""
-
+"""Lazy suite dispatcher, retaining the original flag-only command syntax."""
 from __future__ import annotations
 
 import argparse
-import json
-import logging
-import os
 import sys
-from pathlib import Path
-
-import torch
-
-from rankseg_benchmark.datasets import REGISTRY, get_spec, list_datasets
-from rankseg_benchmark.runner import format_report, run_benchmark
-
-LOGGER = logging.getLogger(__name__)
 
 
-def _display_cache_dir(cache_dir: Path | None) -> str:
-    if cache_dir is not None:
-        return str(cache_dir.expanduser())
-    if os.environ.get("HF_DATASETS_CACHE"):
-        return str(Path(os.environ["HF_DATASETS_CACHE"]).expanduser())
-    if os.environ.get("HF_HOME"):
-        return str(Path(os.environ["HF_HOME"]).expanduser() / "datasets")
-    return str(Path.home() / ".cache" / "huggingface" / "datasets")
-
-
-def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
+def build_parser():
+    parser = argparse.ArgumentParser(
         prog="rankseg-bench",
-        description="Benchmark RankSEG against the argmax baseline on pre-computed probability masks.",
+        description="Compare RankSEG and argmax using Quick, MONAI, or nnU-Net experiments.",
+        epilog="Legacy usage remains supported: rankseg-bench --dataset pascal_voc --limit 5",
     )
-    p.add_argument(
-        "--dataset",
-        choices=list_datasets(),
-        help="Which benchmark dataset to evaluate. Required unless --list-datasets is set.",
-    )
-    p.add_argument(
-        "--solver",
-        default="RMA",
-        help="RankSEG solver (RMA, BA, TRNA, BA+TRNA). Default: RMA.",
-    )
-    p.add_argument(
-        "--metric",
-        default="dice",
-        choices=["dice", "iou"],
-        help="Metric to optimize. Default: dice.",
-    )
-    p.add_argument(
-        "--device",
-        default="cuda" if torch.cuda.is_available() else "cpu",
-        help="Device for inference. Default: cuda if available else cpu.",
-    )
-    p.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Optional cap on number of samples (for quick smoke runs).",
-    )
-    p.add_argument(
-        "--warmup",
-        type=int,
-        default=3,
-        help="Number of warmup samples (timing not recorded). Default: 3.",
-    )
-    p.add_argument(
-        "--batch-size",
-        type=int,
-        default=8,
-        help=(
-            "Maximum number of same-shape samples per inference batch. "
-            "Variable-size samples are flushed into smaller batches. Default: 8."
-        ),
-    )
-    p.add_argument(
-        "--cache-dataset",
-        action="store_true",
-        help="Download/cache the full Hugging Face dataset locally before running instead of streaming rows.",
-    )
-    p.add_argument(
-        "--cache-dir",
-        type=Path,
-        default=None,
-        help="Optional Hugging Face datasets cache directory used with --cache-dataset.",
-    )
-    p.add_argument(
-        "--artifact-dir",
-        type=Path,
-        default=None,
-        help="Generated local artifact directory required by MONAI benchmark targets.",
-    )
-    p.add_argument(
-        "--per-class",
-        action="store_true",
-        help="Also print per-class Dice/IoU gain breakdown.",
-    )
-    p.add_argument(
-        "--json",
-        dest="json_out",
-        type=Path,
-        default=None,
-        help="If set, write full results (including per-class arrays) to this JSON file.",
-    )
-    p.add_argument(
-        "--rankseg-path",
-        type=Path,
-        default=None,
-        help=(
-            "Optional local RankSEG checkout to import instead of an installed package. "
-            "Equivalent to setting RANKSEG_PATH; the CLI flag takes precedence."
-        ),
-    )
-    p.add_argument(
-        "--list-datasets",
-        action="store_true",
-        help="List available datasets and exit.",
-    )
-    log_group = p.add_mutually_exclusive_group()
-    log_group.add_argument(
-        "--quiet",
-        action="store_true",
-        help="Only print warnings/errors plus the final report.",
-    )
-    log_group.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Print extra debug details while loading data and running inference.",
-    )
-    return p
+    parser.add_argument("suite", choices=("quick", "monai", "nnunet"), nargs="?")
+    return parser
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    _configure_logging(verbose=args.verbose, quiet=args.quiet)
-
-    if args.list_datasets:
-        for name in list_datasets():
-            spec = REGISTRY[name]
-            print(f"  {name:<30} {spec.num_classes:>4} classes  {spec.display_mode:<10}  {spec.description}")
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if not argv or argv in (["--help"], ["-h"]):
+        build_parser().print_help()
         return 0
-
-    if not args.dataset:
-        parser.error("--dataset is required (or pass --list-datasets to see options).")
-
-    spec = get_spec(args.dataset)
-    if spec.source_type == "local_artifacts":
-        if args.artifact_dir is None:
-            parser.error(f"--artifact-dir is required for dataset {spec.name}")
-        if args.cache_dataset:
-            parser.error("--cache-dataset only applies to Hugging Face datasets")
-        if args.batch_size != 1:
-            LOGGER.info("Using batch_size=1 for volume-level MONAI artifacts")
-            args.batch_size = 1
-    elif args.artifact_dir is not None:
-        parser.error("--artifact-dir only applies to local artifact datasets")
-    LOGGER.info("Starting RankSEG benchmark")
-    LOGGER.info(
-        "Configuration: dataset=%s split=%s data_dir=%s classes=%d mode=%s spatial_dims=%d "
-        "rankseg_channels=%s evaluation_class_ids=%s ignore_index=%s",
-        spec.name,
-        spec.hf_split,
-        spec.hf_data_dir or "<repo root>",
-        spec.num_classes,
-        spec.output_mode,
-        spec.spatial_dims,
-        spec.rankseg_channels,
-        spec.evaluation_class_ids,
-        spec.ignore_index,
-    )
-    LOGGER.info(
-        "Run options: solver=%s metric=%s device=%s limit=%s warmup=%d batch_size=%d cache_dataset=%s "
-        "cache_dir=%s artifact_dir=%s rankseg_path=%s",
-        args.solver,
-        args.metric,
-        args.device,
-        args.limit if args.limit is not None else "all",
-        args.warmup,
-        args.batch_size,
-        args.cache_dataset,
-        _display_cache_dir(args.cache_dir),
-        args.artifact_dir or "<not set>",
-        args.rankseg_path or "<installed package or RANKSEG_PATH>",
-    )
-    baseline, rs = run_benchmark(
-        spec,
-        metric=args.metric,
-        solver=args.solver,
-        device=args.device,
-        limit=args.limit,
-        warmup=args.warmup,
-        batch_size=args.batch_size,
-        cache_dataset=args.cache_dataset,
-        cache_dir=args.cache_dir,
-        artifact_dir=args.artifact_dir,
-        rankseg_path=args.rankseg_path,
-    )
-
-    print(
-        format_report(
-            baseline,
-            rs,
-            class_names=list(spec.class_names) if spec.class_names is not None else None,
-            per_class=args.per_class,
-        )
-    )
-
-    if args.json_out:
-        LOGGER.info("Serializing full benchmark results to JSON: %s", args.json_out)
-        payload = {
-            "dataset": spec.name,
-            "metric": args.metric,
-            "solver": args.solver,
-            "device": args.device,
-            "limit": args.limit,
-            "batch_size": args.batch_size,
-            "cache_dataset": args.cache_dataset,
-            "cache_dir": str(args.cache_dir) if args.cache_dir else None,
-            "artifact_dir": str(args.artifact_dir) if args.artifact_dir else None,
-            "rankseg_path": str(args.rankseg_path) if args.rankseg_path else None,
-            "spatial_dims": spec.spatial_dims,
-            "rankseg_channels": spec.rankseg_channels,
-            "evaluation_class_ids": spec.evaluation_class_ids,
-            "baseline": _serialize(baseline.summary()),
-            "rankseg": _serialize(rs.summary()),
-        }
-        args.json_out.write_text(json.dumps(payload, indent=2))
-        print(f"\nWrote JSON results -> {args.json_out}")
-        LOGGER.info("JSON results written")
-
-    return 0
-
-
-def _configure_logging(*, verbose: bool, quiet: bool) -> None:
-    package_level = logging.WARNING if quiet else logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(
-        level=logging.WARNING,
-        format="%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
-        datefmt="%H:%M:%S",
-    )
-    logging.getLogger("rankseg_benchmark").setLevel(package_level)
-
-
-def _serialize(s: dict) -> dict:
-    return {
-        k: (v.tolist() if hasattr(v, "tolist") else v)
-        for k, v in s.items()
-    }
+    if argv[0] == "quick":
+        from .quick.cli import main as run
+        return run(argv[1:], source_type="huggingface")
+    if argv[0] == "monai":
+        from .monai.cli import main as run
+        return run(argv[1:])
+    if argv[0] == "nnunet":
+        from .nnunet.cli import main as run
+        return run(argv[1:])
+    if argv[0].startswith("-"):
+        from .quick.cli import main as run
+        return run(argv)
+    build_parser().error(f"unknown suite: {argv[0]}")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

@@ -41,5 +41,14 @@ datasets/
 *.h5
 *.hdf5
 
+# Published evidence is metadata, not a downloaded dataset. Keep this exception
+# narrow so checkpoints, images, and probability caches remain ignored here too.
+!evidence/nnunet/datasets/
+evidence/nnunet/datasets/**
+!evidence/nnunet/datasets/*/
+!evidence/nnunet/datasets/*/summary.json
+!evidence/nnunet/datasets/*/case_paired_deltas.csv
+!evidence/nnunet/datasets/*/AUDIT.json
+
 # Locally rendered medical figures (reproducible with rankseg-monai-demo).
 monai_pancreas_rankseg*.png

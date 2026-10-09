@@ -165,6 +165,177 @@
       },
       "activation": "softmax",
       "coordinate_space": "resampled_model_space"
+    },
+    "monai_wholebody_lowres_v027_msd_pancreas": {
+      "dataset": {
+        "name": "Medical Segmentation Decathlon Task07 Pancreas",
+        "source_dataset_id": "msd_task07_pancreas",
+        "task_dir": "Task07_Pancreas",
+        "class_names": ["background", "pancreas"],
+        "split": {
+          "strategy": "fixed_case_ids",
+          "case_ids": [
+            "pancreas_010", "pancreas_016", "pancreas_041", "pancreas_042", "pancreas_043",
+            "pancreas_048", "pancreas_056", "pancreas_058", "pancreas_064", "pancreas_070",
+            "pancreas_092", "pancreas_102", "pancreas_107", "pancreas_117", "pancreas_127",
+            "pancreas_138", "pancreas_148", "pancreas_160", "pancreas_191", "pancreas_204"
+          ],
+          "note": "The identical 20 cases fixed for the BTCV Pancreas comparison; not selected using Whole Body predictions."
+        },
+        "source_label_foreground_ids": [1, 2],
+        "evaluation_design": "external_test",
+        "checkpoint_exposure": "none_by_declared_dataset_provenance",
+        "test_case_usage": {
+          "checkpoint_training": false,
+          "checkpoint_selection": false,
+          "postprocessing_parameter_selection": false
+        }
+      },
+      "bundle": {
+        "name": "wholeBody_ct_segmentation",
+        "version": "0.2.7",
+        "config": "configs/inference.json",
+        "checkpoint": {
+          "path": "models/model_lowres.pt",
+          "hash_type": "md5",
+          "hash_value": "dbdebeae650f4fb5ea7f4ad01e0d2431"
+        },
+        "supervised_training_dataset": "TotalSegmentator",
+        "supervised_training_dataset_id": "totalsegmentator",
+        "self_supervised_pretraining_datasets": [],
+        "self_supervised_pretraining_dataset_ids": []
+      },
+      "preprocessing": {
+        "orientation": "RAS",
+        "pixdim": [3.0, 3.0, 3.0],
+        "intensity_mode": "normalize_nonzero_scale"
+      },
+      "inference": {
+        "type": "sliding_window_3d",
+        "roi_size": [96, 96, 96],
+        "sw_batch_size": 1,
+        "overlap": 0.25,
+        "padding_mode": "replicate",
+        "mode": "gaussian",
+        "amp": true
+      },
+      "output_transform": {
+        "type": "binary_one_vs_rest",
+        "model_num_classes": 105,
+        "foreground_channel": 10,
+        "foreground_name": "pancreas"
+      },
+      "activation": "softmax",
+      "coordinate_space": "resampled_model_space"
+    },
+    "monai_wholebody_lowres_v027_msd_spleen": {
+      "dataset": {
+        "name": "Medical Segmentation Decathlon Task09 Spleen",
+        "source_dataset_id": "msd_task09_spleen",
+        "task_dir": "Task09_Spleen",
+        "class_names": ["background", "spleen"],
+        "split": {
+          "strategy": "fixed_case_ids",
+          "case_ids": [
+            "spleen_56", "spleen_59", "spleen_6", "spleen_60", "spleen_61",
+            "spleen_62", "spleen_63", "spleen_8", "spleen_9"
+          ],
+          "note": "The identical 9 cases fixed for the BTCV Spleen comparison; not selected using Whole Body predictions."
+        },
+        "source_label_foreground_ids": [1],
+        "evaluation_design": "external_test",
+        "checkpoint_exposure": "none_by_declared_dataset_provenance",
+        "test_case_usage": {
+          "checkpoint_training": false,
+          "checkpoint_selection": false,
+          "postprocessing_parameter_selection": false
+        }
+      },
+      "bundle": {
+        "name": "wholeBody_ct_segmentation",
+        "version": "0.2.7",
+        "config": "configs/inference.json",
+        "checkpoint": {
+          "path": "models/model_lowres.pt",
+          "hash_type": "md5",
+          "hash_value": "dbdebeae650f4fb5ea7f4ad01e0d2431"
+        },
+        "supervised_training_dataset": "TotalSegmentator",
+        "supervised_training_dataset_id": "totalsegmentator",
+        "self_supervised_pretraining_datasets": [],
+        "self_supervised_pretraining_dataset_ids": []
+      },
+      "preprocessing": {
+        "orientation": "RAS",
+        "pixdim": [3.0, 3.0, 3.0],
+        "intensity_mode": "normalize_nonzero_scale"
+      },
+      "inference": {
+        "type": "sliding_window_3d",
+        "roi_size": [96, 96, 96],
+        "sw_batch_size": 1,
+        "overlap": 0.25,
+        "padding_mode": "replicate",
+        "mode": "gaussian",
+        "amp": true
+      },
+      "output_transform": {
+        "type": "binary_one_vs_rest",
+        "model_num_classes": 105,
+        "foreground_channel": 1,
+        "foreground_name": "spleen"
+      },
+      "activation": "softmax",
+      "coordinate_space": "resampled_model_space"
+    },
+    "monai_ventricular_v035_acdc": {
+      "dataset": {
+        "name": "ACDC official training database",
+        "source_dataset_id": "acdc_official_training",
+        "task_dir": "Task027_ACDC",
+        "class_names": ["background", "lv_pool", "myocardium", "rv_pool"],
+        "image_suffix": "_0000",
+        "split": {
+          "strategy": "sorted_last_n",
+          "count": 200,
+          "expected_total": 200,
+          "note": "All 100 patients, two labeled frames per patient; no case-based checkpoint or postprocessing selection."
+        },
+        "source_label_to_target": {"0": 0, "1": 3, "2": 2, "3": 1},
+        "evaluation_design": "external_test",
+        "checkpoint_exposure": "none_by_declared_dataset_provenance",
+        "test_case_usage": {
+          "checkpoint_training": false,
+          "checkpoint_selection": false,
+          "postprocessing_parameter_selection": false
+        }
+      },
+      "bundle": {
+        "name": "ventricular_short_axis_3label",
+        "version": "0.3.5",
+        "config": "configs/inference.json",
+        "checkpoint": {
+          "path": "models/model.pt",
+          "hash_type": "md5",
+          "hash_value": "0ffb4506fbfa4b3709a28a7f71122ec8"
+        },
+        "supervised_training_dataset": "Private King's College London cardiac MR",
+        "supervised_training_dataset_id": "kcl_private_cardiac_mr",
+        "self_supervised_pretraining_datasets": [],
+        "self_supervised_pretraining_dataset_ids": []
+      },
+      "preprocessing": {
+        "intensity_mode": "scale"
+      },
+      "inference": {
+        "type": "slice_2d",
+        "roi_size": [256, 256],
+        "sw_batch_size": 1,
+        "overlap": 0.25,
+        "amp": false
+      },
+      "activation": "softmax",
+      "coordinate_space": "native_image_space"
     }
   }
 }

@@ -87,11 +87,14 @@ def evaluate_dataset(
     config: DatasetConfig,
     *,
     device_override: str | None = None,
+    safe_screening_override: bool | None = None,
     case_limit: int | None = None,
     output_dir_override: Path | None = None,
 ) -> Path:
     if device_override is not None:
         config = replace(config, device=device_override)
+    if safe_screening_override is not None:
+        config = replace(config, safe_screening=safe_screening_override)
     if output_dir_override is not None:
         config = replace(config, output_dir=output_dir_override.resolve())
     cases = discover_cases(config)
@@ -344,6 +347,7 @@ def evaluate_dataset(
                 "pruning_prob": config.pruning_prob,
                 "smooth": config.smooth,
                 "unassigned_policy": config.unassigned_policy,
+                "safe_screening": config.safe_screening,
             },
         },
         "postprocessing": None if postprocessor is None else postprocessor.summary(),

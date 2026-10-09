@@ -97,6 +97,11 @@ def build_parser(source_type: str | None = None) -> argparse.ArgumentParser:
         help="Also print per-class Dice/IoU gain breakdown.",
     )
     p.add_argument(
+        "--safe-screening",
+        action="store_true",
+        help="Force experimental safe screening for RMA Dice (default: full sort).",
+    )
+    p.add_argument(
         "--json",
         dest="json_out",
         type=Path,
@@ -148,6 +153,8 @@ def main(argv: list[str] | None = None, *, source_type: str | None = None) -> in
         parser.error("--dataset is required (or pass --list-datasets to see options).")
 
     spec = get_spec(args.dataset)
+    if args.safe_screening and (args.metric != "dice" or args.solver.strip().upper() != "RMA"):
+        parser.error("--safe-screening requires --solver RMA --metric dice")
     if spec.source_type == "local_artifacts":
         if args.artifact_dir is None:
             parser.error(f"--artifact-dir is required for dataset {spec.name}")
@@ -198,6 +205,7 @@ def main(argv: list[str] | None = None, *, source_type: str | None = None) -> in
         cache_dir=args.cache_dir,
         artifact_dir=args.artifact_dir,
         rankseg_path=args.rankseg_path,
+        safe_screening=args.safe_screening,
     )
 
     print(
@@ -222,6 +230,7 @@ def main(argv: list[str] | None = None, *, source_type: str | None = None) -> in
             "cache_dir": str(args.cache_dir) if args.cache_dir else None,
             "artifact_dir": str(args.artifact_dir) if args.artifact_dir else None,
             "rankseg_path": str(args.rankseg_path) if args.rankseg_path else None,
+            "safe_screening": args.safe_screening,
             "spatial_dims": spec.spatial_dims,
             "rankseg_channels": spec.rankseg_channels,
             "evaluation_class_ids": spec.evaluation_class_ids,

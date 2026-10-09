@@ -6,7 +6,7 @@ with argmax using three complementary benchmark suites.
 | Suite | What it evaluates | Start here |
 | :--- | :--- | :--- |
 | **Quick** | Hosted probabilities: VOC, Cityscapes, ADE20K, and KiTS | [Guide and results](docs/quick/README.md) |
-| **MONAI** | Frozen BTCV Swin UNETR on external MSD Pancreas/Spleen cases | [Checkpoint, protocol, and reproduction](docs/monai/README.md) |
+| **MONAI** | Model Zoo Bundles evaluated on their matching datasets | [Results and protocol](docs/monai/MATCHED_MODEL_ZOO_RESULTS_2026-10-09.md) |
 | **nnU-Net** | 16 datasets and 2,181 cases, with OOF or independent-test evaluation | [Full study and evidence](docs/nnunet/README.md) |
 
 ## Quick start
@@ -40,37 +40,33 @@ Cityscapes, **+0.93 pp** on ADE20K, and **+2.37 pp** on KiTS. These are historic
 results, not a newly rerun 0.0.7 benchmark. KiTS uses slice → case → fold averaging,
 not whole-volume Dice. [Full metrics and protocol](docs/quick/REFERENCE_0.0.6.md).
 
-## MONAI: external 3D evaluation
+## MONAI: matched Model Zoo Bundle evaluation
 
-Generate probabilities once from a pinned MONAI checkpoint, then compare decoders
-on the same complete resampled 3D volumes:
+These are **RankSEG-run comparisons**, not results published or endorsed by
+MONAI. Released Model Zoo checkpoints are evaluated on their matching labeled
+datasets. Argmax and RMA with safe screening decode the same complete 3D
+probability volumes; model inference is excluded from decoder timing.
 
-```bash
-python -m pip install -e ".[monai]"
-rankseg-bench monai cache --list
-# After generating the cache using the MONAI guide:
-rankseg-bench monai evaluate \
-  --dataset monai_btcv_swin_v058_msd_pancreas \
-  --artifact-dir ./artifacts/monai_btcv_swin_v058_msd_pancreas \
-  --device cuda --batch-size 1 --warmup 1
-```
+| Bundle / cohort | Cases | Argmax Dice | RMA Dice | Δ Dice (pp) | Decoder ms: Argmax → RMA |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| Prostate MRI Anatomy / Prostate158 independent test, reader 1 | 19 | 81.753 | 81.917 | +0.165 | 0.184 → 1.108 |
+| Same cohort, reader 2 | 19 | 80.033 | 80.312 | +0.279 | 0.184 → 1.108 |
+| Spleen CT / MSD Task09 checkpoint-selection validation | 9 | 95.825 | 95.840 | +0.015 | 0.225 → 1.117 |
 
-| External cohort | Volumes | Argmax Dice (%) | RankSEG Dice (%) | Δ (pp) |
-| :--- | ---: | ---: | ---: | ---: |
-| MSD Pancreas | 20 | 50.30 | 54.87 | +4.57 |
-| MSD Spleen | 9 | 94.79 | 94.75 | −0.04 |
-
-These are the recorded **0.0.6** foreground results. The Spleen decline is
-retained: improvement is not guaranteed. The declared checkpoint training
-datasets exclude these external evaluation datasets; this is a dataset-level
-provenance check, not an independent patient-identity audit.
-[Data preparation, IoU, timing, and provenance](docs/monai/README.md).
+The Spleen cases were used for checkpoint selection and are **not** an
+independent test. [IoU, case-separation audit, and reproduction steps](docs/monai/MATCHED_MODEL_ZOO_RESULTS_2026-10-09.md).
 
 ## nnU-Net: systematic medical benchmark
 
-The Full-16 study retains **all 16 datasets and 2,181 cases**, including three
-dataset-level regressions. Dataset-macro Dice was **83.63646% → 83.84318%**
-(**+0.20671 pp**); the median dataset gain was **+0.00979 pp**.
+The Full-16 rerun with **RankSEG 0.0.7 and safe screening enabled** retains all
+**16 datasets and 2,181 cases**, including three dataset-level regressions.
+Dataset-macro Dice was **83.63646% → 83.84726%** (**+0.21080 pp**); dataset-macro
+IoU improved by **+0.19943 pp**. See the [0.0.7 per-dataset results and timing
+caveats](docs/nnunet/FULL16_RANKSEG_0_0_7_SCREENED_2026-10-09.md).
+
+The checksummed public evidence below preserves the **historical 0.0.5 run
+without screening** (+0.20671 Dice pp). It has not been silently replaced by
+the 0.0.7 rerun.
 
 Install the optional evaluation dependencies and verify the compact published
 evidence without downloading images, checkpoints, or probability arrays:
@@ -81,9 +77,14 @@ rankseg-bench nnunet verify-evidence evidence/nnunet
 ```
 
 The study's historical versions, splits, official postprocessing, and recorded
-results are preserved. [Per-dataset results and limitations](docs/nnunet/README.md)
+results are preserved. [Study design and limitations](docs/nnunet/README.md)
 · [Fixed protocol](docs/nnunet/BENCHMARK_PROTOCOL.md)
-· [Generated Full-16 report](evidence/nnunet/full16/RESULTS.md).
+· [Historical generated macro report](evidence/nnunet/full16/RESULTS.md).
+
+A separate [official TotalSegmentator v2 / AMOS22 pilot](docs/nnunet/AMOS22_TOTAL_SEGMENTATOR_V2_PILOT.md)
+tests six organs on ten prespecified CT cases with RankSEG 0.0.7. Its Dice
+changes are only **+0.01 to +0.23 pp**; it is not part of the Full-16 aggregate
+or a substitute for a complete AMOS22 cohort.
 
 ## Reproducibility and organization
 

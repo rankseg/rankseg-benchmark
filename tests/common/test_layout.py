@@ -68,4 +68,4 @@ except SystemExit as exc:
 def test_monai_resource_loads_without_checkout_working_directory(tmp_path, monkeypatch):
     from rankseg_benchmark.monai.cache import load_monai_specs
     monkeypatch.chdir(tmp_path)
-    assert len(load_monai_specs()) == 2
+    assert len(load_monai_specs()) == 5

@@ -17,7 +17,7 @@ from typing import Any
 import numpy as np
 import torch
 
-GENERATOR_REVISION = 1
+GENERATOR_REVISION = 2
 EXTERNAL_EXPOSURE_DECLARATION = "none_by_declared_dataset_provenance"
 
 
@@ -79,6 +79,12 @@ def _hash_json(payload: dict[str, Any]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _generator_revision(spec: dict[str, Any]) -> int:
+    # The new explicit inference modes do not change legacy BTCV generation.
+    # Keep revision 1 for those caches so existing complete cohorts are reused.
+    return GENERATOR_REVISION if "type" in spec["inference"] else 1
+
+
 def _case_id(path: Path) -> str:
     return path.name[: -len(".nii.gz")] if path.name.endswith(".nii.gz") else path.stem
 
@@ -96,13 +102,16 @@ def resolve_cases(spec: dict[str, Any], dataset_root: Path) -> list[tuple[str, P
         count = int(split["count"])
         if len(labels) < count:
             raise FileNotFoundError(f"Expected at least {count} labels in {labels_dir}, found {len(labels)}")
+        if "expected_total" in split and len(labels) != int(split["expected_total"]):
+            raise ValueError(f"Expected exactly {split['expected_total']} labels in {labels_dir}, found {len(labels)}")
         case_ids = [_case_id(path) for path in labels[-count:]]
     else:
         raise ValueError(f"Unknown MONAI split strategy: {strategy!r}")
 
+    image_suffix = spec["dataset"].get("image_suffix", "")
     cases = []
     for name in case_ids:
-        image = images_dir / f"{name}.nii.gz"
+        image = images_dir / f"{name}{image_suffix}.nii.gz"
         label = labels_dir / f"{name}.nii.gz"
         if not image.is_file() or not label.is_file():
             raise FileNotFoundError(f"Missing image/label pair for {name}: image={image}, label={label}")
@@ -162,12 +171,15 @@ def _require_monai():
         import monai
         from monai.bundle import ConfigParser
         from monai.inferers import SlidingWindowInferer
+        from monai.inferers import SliceInferer
         from monai.transforms import (
             Compose,
             EnsureChannelFirstd,
             EnsureTyped,
             LoadImaged,
+            NormalizeIntensityd,
             Orientationd,
+            ScaleIntensityd,
             ScaleIntensityRanged,
             Spacingd,
         )
@@ -177,10 +189,13 @@ def _require_monai():
         "monai": monai,
         "ConfigParser": ConfigParser,
         "SlidingWindowInferer": SlidingWindowInferer,
+        "SliceInferer": SliceInferer,
         "Compose": Compose,
         "LoadImaged": LoadImaged,
         "EnsureChannelFirstd": EnsureChannelFirstd,
         "Orientationd": Orientationd,
+        "NormalizeIntensityd": NormalizeIntensityd,
+        "ScaleIntensityd": ScaleIntensityd,
         "Spacingd": Spacingd,
         "ScaleIntensityRanged": ScaleIntensityRanged,
         "EnsureTyped": EnsureTyped,
@@ -237,28 +252,39 @@ def _build_model(spec: dict[str, Any], bundle_root: Path, device: torch.device, 
 
 def _build_preprocessing(spec: dict[str, Any], monai_api: dict[str, Any]):
     config = spec["preprocessing"]
-    a_min, a_max, b_min, b_max = config["intensity"]
-    return monai_api["Compose"](
-        [
-            monai_api["LoadImaged"](keys=("image", "label")),
-            monai_api["EnsureChannelFirstd"](keys=("image", "label")),
-            monai_api["Orientationd"](keys=("image", "label"), axcodes=config["orientation"]),
+    transforms = [
+        monai_api["LoadImaged"](keys=("image", "label")),
+        monai_api["EnsureChannelFirstd"](keys=("image", "label")),
+    ]
+    if "orientation" in config:
+        transforms.append(monai_api["Orientationd"](keys=("image", "label"), axcodes=config["orientation"]))
+    if "pixdim" in config:
+        transforms.append(
             monai_api["Spacingd"](
-                keys=("image", "label"),
-                pixdim=tuple(config["pixdim"]),
-                mode=("bilinear", "nearest"),
-            ),
+                keys=("image", "label"), pixdim=tuple(config["pixdim"]), mode=("bilinear", "nearest")
+            )
+        )
+    intensity_mode = config.get("intensity_mode", "range")
+    if intensity_mode == "range":
+        a_min, a_max, b_min, b_max = config["intensity"]
+        transforms.append(
             monai_api["ScaleIntensityRanged"](
-                keys="image",
-                a_min=a_min,
-                a_max=a_max,
-                b_min=b_min,
-                b_max=b_max,
-                clip=True,
-            ),
-            monai_api["EnsureTyped"](keys=("image", "label")),
-        ]
-    )
+                keys="image", a_min=a_min, a_max=a_max, b_min=b_min, b_max=b_max, clip=True
+            )
+        )
+    elif intensity_mode == "normalize_nonzero_scale":
+        transforms.extend(
+            [
+                monai_api["NormalizeIntensityd"](keys="image", nonzero=True),
+                monai_api["ScaleIntensityd"](keys="image", minv=-1.0, maxv=1.0),
+            ]
+        )
+    elif intensity_mode == "scale":
+        transforms.append(monai_api["ScaleIntensityd"](keys="image"))
+    else:
+        raise ValueError(f"Unknown MONAI intensity mode: {intensity_mode!r}")
+    transforms.append(monai_api["EnsureTyped"](keys=("image", "label")))
+    return monai_api["Compose"](transforms)
 
 
 def _synchronize(device: torch.device) -> None:
@@ -285,6 +311,16 @@ def _adapt_probabilities(probabilities: torch.Tensor, spec: dict[str, Any]) -> t
 
 
 def _adapt_label(label: torch.Tensor, spec: dict[str, Any]) -> torch.Tensor:
+    source_to_target = spec["dataset"].get("source_label_to_target")
+    if source_to_target is not None:
+        mapping = {int(source): int(target) for source, target in source_to_target.items()}
+        observed_ids = {int(class_id) for class_id in torch.unique(label)}
+        if not observed_ids.issubset(mapping):
+            raise ValueError(f"Source label contains unmapped values: {sorted(observed_ids - mapping.keys())}")
+        adapted = torch.empty_like(label, dtype=torch.long)
+        for source, target in mapping.items():
+            adapted[label == source] = target
+        return adapted
     foreground_ids = spec["dataset"].get("source_label_foreground_ids")
     if foreground_ids is None:
         return label.long()
@@ -301,11 +337,24 @@ def _adapt_label(label: torch.Tensor, spec: dict[str, Any]) -> torch.Tensor:
 @torch.inference_mode()
 def _infer_case(model, image: torch.Tensor, spec: dict[str, Any], device: torch.device, monai_api):
     config = spec["inference"]
-    inferer = monai_api["SlidingWindowInferer"](
-        roi_size=tuple(config["roi_size"]),
-        sw_batch_size=int(config["sw_batch_size"]),
-        overlap=float(config["overlap"]),
-    )
+    inference_type = config.get("type", "sliding_window_3d")
+    if inference_type == "sliding_window_3d":
+        inferer = monai_api["SlidingWindowInferer"](
+            roi_size=tuple(config["roi_size"]),
+            sw_batch_size=int(config["sw_batch_size"]),
+            overlap=float(config["overlap"]),
+            mode=config.get("mode", "constant"),
+            padding_mode=config.get("padding_mode", "constant"),
+        )
+    elif inference_type == "slice_2d":
+        inferer = monai_api["SliceInferer"](
+            roi_size=tuple(config["roi_size"]),
+            sw_batch_size=int(config.get("sw_batch_size", 1)),
+            overlap=float(config.get("overlap", 0.25)),
+            spatial_dim=2,
+        )
+    else:
+        raise ValueError(f"Unknown MONAI inference type: {inference_type!r}")
     _synchronize(device)
     started = time.perf_counter()
     with torch.autocast(device_type=device.type, enabled=bool(config["amp"])):
@@ -389,9 +438,10 @@ def generate_artifacts(
     if "architecture" in bundle:
         architecture_path = _verify_bundle_file(bundle_root, bundle["architecture"])
         bundle_hashes["architecture_sha256"] = _hash_file(architecture_path)
+    generator_revision = _generator_revision(spec)
     generation_fingerprint = _hash_json(
         {
-            "generator_revision": GENERATOR_REVISION,
+            "generator_revision": generator_revision,
             "benchmark_spec": spec,
             "bundle_hashes": bundle_hashes,
             "device": str(device),
@@ -482,7 +532,7 @@ def generate_artifacts(
             "coordinate_space": spec["coordinate_space"],
             "probability_dtype": "float32",
             "device": str(device),
-            "generator_revision": GENERATOR_REVISION,
+            "generator_revision": generator_revision,
             "fingerprint": generation_fingerprint,
             "preprocessing": spec["preprocessing"],
             "inference": spec["inference"],
@@ -502,7 +552,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--list", action="store_true", help="List built-in MONAI benchmark targets and exit.")
     parser.add_argument("--benchmark", choices=sorted(load_monai_specs()))
-    parser.add_argument("--dataset-root", type=Path, help="Extracted MSD task directory containing imagesTr/labelsTr.")
+    parser.add_argument("--dataset-root", type=Path, help="Extracted dataset directory containing imagesTr/labelsTr.")
     parser.add_argument("--bundle-dir", type=Path, default=Path("monai_bundles"), help="Parent directory for Bundles.")
     parser.add_argument("--output-dir", type=Path, help="Directory for generated case artifacts and manifest.json.")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")

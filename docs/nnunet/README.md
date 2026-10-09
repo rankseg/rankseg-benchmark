@@ -8,9 +8,14 @@ for both decoders and does not change training, checkpoints, preprocessing, or t
 The public evidence package contains 16 datasets and 2,181 labeled cases. It is small enough to clone, checksummed,
 and independently rebuildable without downloading images, model weights, or probability arrays.
 
-> Commands below run from the **rankseg-benchmark repository root**. This is the
-> historical Full-16 study; its recorded RankSEG versions and numbers are unchanged.
+> Commands below run from the **rankseg-benchmark repository root**. This page
+> distinguishes the 0.0.7 screened rerun from the unchanged historical
+> checksummed Full-16 evidence.
 > See [migration and workspace setup](../MIGRATION.md) before reproducing inference.
+
+A separate [TotalSegmentator v2 / AMOS22 fixed 10-case pilot](AMOS22_TOTAL_SEGMENTATOR_V2_PILOT.md)
+uses RankSEG 0.0.7 and six binary organ endpoints. It is **not** part of the
+Full-16 evidence or its dataset-level aggregate.
 
 ## Experiment design
 
@@ -53,7 +58,29 @@ observations from the same patient or sequence are clustered where required.
 
 The complete rules are in the [fixed benchmark protocol](BENCHMARK_PROTOCOL.md).
 
-## Results
+## RankSEG 0.0.7 + safe screening rerun
+
+The complete Full-16 cohort was rerun with screening **explicitly enabled** on
+every case. Dataset-macro Dice was **83.63646% Argmax → 83.84726% RankSEG**
+(**+0.21080 pp**), and dataset-macro IoU improved by **+0.19943 pp**. Thirteen
+datasets improved in Dice and three declined. For the full 16-row table,
+case-level safety counts, numerical differences, and timing interpretation,
+see the [0.0.7 screened rerun report](FULL16_RANKSEG_0_0_7_SCREENED_2026-10-09.md).
+
+The low-baseline endpoints are easier to see at the class level than in a
+dataset average: Colon tumour starts at **48.92%** Argmax Dice and Pancreas
+tumour at **54.65%**. An exploratory grouping of the 31 class/region records by
+Argmax Dice finds that all 5 high-difficulty records (<70%) improve, whereas
+the medium group (70% to <90%) has 7 gains and 3 declines and a slightly
+negative mean change. The [rerun report](FULL16_RANKSEG_0_0_7_SCREENED_2026-10-09.md)
+shows every record; this grouping is not a significance test or a new selected
+aggregate.
+
+The detailed 0.0.7 outputs are currently local, Git-ignored artifacts. The
+public checksummed evidence below remains the historical 0.0.5 run; its
+numbers are not a controlled estimate of screening's effect relative to 0.0.7.
+
+## Historical published evidence (RankSEG 0.0.5, no screening)
 
 - **16 datasets and 2,181 cases**
 - **13 positive and 3 negative** dataset-level Dice changes
@@ -62,30 +89,53 @@ The complete rules are in the [fixed benchmark protocol](BENCHMARK_PROTOCOL.md).
 - Exact two-sided sign test: **p=0.02127**; Wilcoxon signed-rank test: **p=0.01099**
 - At a ±1 Dice pp case threshold: **246 improved, 1,802 stable, 133 worsened**
 
-| Dataset | Evaluation | Cases | Argmax Dice (%) | RankSEG Dice (%) | Δ (pp) | Improved (>+1 pp) | Worsened (<-1 pp) |
-|---|---|---:|---:|---:|---:|---:|---:|
-| MSD BrainTumour | v1 OOF | 484 | 84.57217 | 84.57988 | +0.00771 | 7 | 1 |
-| MSD Heart | v1 OOF | 20 | 93.29433 | 93.29623 | +0.00191 | 0 | 0 |
-| MSD Liver | v1 OOF ensemble | 131 | 80.99903 | 81.82314 | +0.82412 | 32 | 9 |
-| MSD Hippocampus | v1 OOF | 260 | 88.90847 | 88.91252 | +0.00405 | 0 | 0 |
-| MSD Prostate | v1 OOF ensemble | 32 | 75.95709 | 75.98004 | +0.02295 | 8 | 4 |
-| MSD Lung | v1 OOF ensemble | 63 | 72.28822 | 72.74899 | +0.46077 | 20 | 10 |
-| MSD Pancreas | v1 OOF ensemble | 281 | 68.39597 | 69.56287 | +1.16690 | 66 | 24 |
-| MSD HepaticVessel | v1 OOF ensemble | 303 | 68.63054 | 69.16535 | +0.53481 | 85 | 49 |
-| MSD Spleen | v1 OOF ensemble | 41 | 97.23659 | 97.24320 | +0.00661 | 0 | 0 |
-| MSD Colon | v1 OOF | 126 | 48.91759 | 49.15961 | +0.24203 | 14 | 22 |
-| PROMISE12 | v1 independent test ensemble | 30 | 91.93567 | 91.85350 | -0.08217 | 0 | 1 |
-| ACDC | v1 OOF ensemble; patient-clustered | 200 | 92.45381 | 92.38008 | -0.07373 | 7 | 12 |
-| CHAOS MRI | v1 OOF ensemble; patient-clustered | 60 | 92.04389 | 92.21990 | +0.17601 | 7 | 1 |
-| SegTHOR | v1 OOF ensemble | 40 | 91.51999 | 91.51811 | -0.00188 | 0 | 0 |
-| Fluo-C3DH-A549 | v1 OOF; sequence-clustered | 90 | 93.94401 | 93.95587 | +0.01186 | 0 | 0 |
-| CHAOS CT | v2 external test | 20 | 97.08608 | 97.09150 | +0.00542 | 0 | 0 |
+The table reports **each foreground class or evaluated region separately**;
+`Valid/total` is the number of cases with defined Dice for that row. There is
+no within-dataset average in the table. These class-level rows come from the
+retained original local outputs; each output's dataset macro matches the
+checksummed public evidence. The evidence package itself does not contain the
+per-class CSVs.
+
+| Dataset | Class / evaluated region | Valid/total | Argmax Dice (%) | 0.0.5 RankSEG Dice (%) | Δ Dice (pp) | Δ IoU (pp) |
+|---|---|---:|---:|---:|---:|---:|
+| MSD BrainTumour | whole tumour | 484/484 | 91.00015 | 90.91972 | -0.08043 | -0.13839 |
+| MSD BrainTumour | tumour core | 484/484 | 83.37486 | 83.41289 | +0.03803 | -0.02225 |
+| MSD BrainTumour | enhancing tumour | 478/484 | 79.34149 | 79.40703 | +0.06554 | +0.04073 |
+| MSD Heart | left atrium | 20/20 | 93.29433 | 93.29623 | +0.00191 | +0.00293 |
+| MSD Liver | liver | 131/131 | 96.21178 | 96.21580 | +0.00403 | +0.00595 |
+| MSD Liver | liver tumour | 120/131 | 65.78628 | 67.43048 | +1.64420 | +1.57421 |
+| MSD Hippocampus | Anterior | 260/260 | 89.74944 | 89.75282 | +0.00338 | +0.00583 |
+| MSD Hippocampus | Posterior | 260/260 | 88.06751 | 88.07223 | +0.00473 | +0.00756 |
+| MSD Prostate | peripheral zone | 32/32 | 66.13404 | 67.89496 | +1.76092 | +2.11025 |
+| MSD Prostate | transition zone | 32/32 | 85.78014 | 84.06512 | -1.71502 | -1.02269 |
+| MSD Lung | lung tumour | 63/63 | 72.28822 | 72.74899 | +0.46077 | +0.56961 |
+| MSD Pancreas | pancreas | 281/281 | 82.14158 | 81.91599 | -0.22559 | -0.32636 |
+| MSD Pancreas | pancreas tumour | 281/281 | 54.65037 | 57.20974 | +2.55938 | +1.98728 |
+| MSD HepaticVessel | hepatic vessel | 303/303 | 64.72835 | 65.04924 | +0.32089 | +0.33037 |
+| MSD HepaticVessel | liver tumour | 303/303 | 72.53273 | 73.28147 | +0.74874 | +0.60884 |
+| MSD Spleen | spleen | 41/41 | 97.23659 | 97.24320 | +0.00661 | +0.01095 |
+| MSD Colon | colon cancer primary | 126/126 | 48.91759 | 49.15961 | +0.24203 | -0.12520 |
+| PROMISE12 | prostate | 30/30 | 91.93567 | 91.85350 | -0.08217 | -0.13970 |
+| ACDC | right ventricle | 200/200 | 91.62896 | 91.37808 | -0.25088 | -0.33276 |
+| ACDC | myocardium | 200/200 | 90.82449 | 90.85268 | +0.02819 | +0.04441 |
+| ACDC | left ventricle cavity | 200/200 | 94.90798 | 94.90948 | +0.00150 | -0.01437 |
+| CHAOS MRI | liver | 60/60 | 93.45059 | 93.52053 | +0.06994 | +0.11630 |
+| CHAOS MRI | right kidney | 60/60 | 92.91439 | 93.01772 | +0.10333 | +0.10175 |
+| CHAOS MRI | left kidney | 60/60 | 92.38598 | 92.74302 | +0.35704 | +0.52661 |
+| CHAOS MRI | spleen | 60/60 | 89.42461 | 89.59833 | +0.17372 | +0.27372 |
+| SegTHOR | esophagus | 40/40 | 85.49781 | 85.47971 | -0.01811 | -0.01905 |
+| SegTHOR | heart | 40/40 | 95.33305 | 95.33070 | -0.00235 | -0.00392 |
+| SegTHOR | trachea | 40/40 | 90.87343 | 90.88136 | +0.00793 | +0.00929 |
+| SegTHOR | aorta | 40/40 | 94.37565 | 94.38067 | +0.00502 | +0.00908 |
+| Fluo-C3DH-A549 | cell | 90/90 | 93.94401 | 93.95587 | +0.01186 | +0.01898 |
+| CHAOS CT / TotalSegmentator v2 | liver | 20/20 | 97.08608 | 97.09150 | +0.00542 | +0.01023 |
 
 The three negative dataset-level results are retained: PROMISE12 (-0.08217 pp), ACDC (-0.07373 pp), and SegTHOR
 (-0.00188 pp). Three datasets have paired intervals entirely above zero: Liver, Pancreas, and HepaticVessel.
 
-See the [generated Full-16 report](../../evidence/nnunet/full16/RESULTS.md) for model configurations and per-dataset case outcome
-counts, or [browse the machine-readable evidence](../../evidence/nnunet).
+See the [generated historical Full-16 report](../../evidence/nnunet/full16/RESULTS.md) for model configurations and
+per-dataset case outcome counts, or [browse the machine-readable evidence](../../evidence/nnunet). Its original
+dataset-macro table remains part of the checksummed archive.
 
 ## Conclusion
 

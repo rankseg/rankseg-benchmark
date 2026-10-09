@@ -1,11 +1,14 @@
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
 import yaml
 
 from rankseg_benchmark.nnunet.config import load_dataset_config
+from rankseg_benchmark.nnunet.decoders import PairedDecoders
 from rankseg_benchmark.nnunet.evaluation import evaluate_dataset
+from rankseg_benchmark.nnunet.cli import build_parser
 
 
 def _write_manifest(tmp_path: Path) -> Path:
@@ -65,6 +68,22 @@ def test_case_limit_is_marked_non_scientific(tmp_path):
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     assert summary["selection"]["scientific_run"] is False
     assert "must not be reported" in summary["selection"]["warning"]
+
+
+def test_safe_screening_override_is_passed_to_decoder_and_recorded(tmp_path):
+    config = load_dataset_config(_write_manifest(tmp_path))
+    assert config.safe_screening is False
+    args = build_parser().parse_args(["evaluate", "example.yaml", "--safe-screening"])
+    assert args.safe_screening is True
+
+    summary_path = evaluate_dataset(config, safe_screening_override=True)
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert summary["decoder"]["rankseg"]["safe_screening"] is True
+    assert PairedDecoders(config)._rankseg.solver_params == {"unassigned_policy": "max_score"}
+    assert PairedDecoders(replace(config, safe_screening=True))._rankseg.solver_params == {
+        "unassigned_policy": "max_score",
+        "safe_screening": True,
+    }
 
 
 def test_end_to_end_region_evaluation_uses_source_label_unions(tmp_path):

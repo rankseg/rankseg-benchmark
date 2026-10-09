@@ -181,6 +181,7 @@ def run_benchmark(
     artifact_dir: str | os.PathLike[str] | None = None,
     progress: bool = True,
     rankseg_path: str | os.PathLike[str] | None = None,
+    safe_screening: bool = False,
 ) -> tuple[RunResult, RunResult]:
     """Run argmax baseline and RankSEG on the same data stream. Returns (baseline, rankseg)."""
     if warmup < 0:
@@ -189,6 +190,8 @@ def run_benchmark(
         raise ValueError("batch_size must be >= 1")
     if limit is not None and limit < 1:
         raise ValueError("limit must be >= 1")
+    if safe_screening and (metric.strip().lower() != "dice" or solver.strip().upper() != "RMA"):
+        raise ValueError("safe_screening requires RMA with the Dice objective")
     if spec.eval_unit == "volume" and batch_size != 1:
         LOGGER.warning("Forcing batch_size=1 for volume-level latency and bounded memory use")
         batch_size = 1
@@ -234,7 +237,12 @@ def run_benchmark(
         spec.output_mode,
         rankseg_output_mode,
     )
-    rankseg = RankSEG(metric=metric, solver=solver, output_mode=rankseg_output_mode)
+    rankseg = RankSEG(
+        metric=metric,
+        solver=solver,
+        output_mode=rankseg_output_mode,
+        **({"safe_screening": True} if safe_screening else {}),
+    )
 
     if spec.eval_unit == "case":
         return _run_case_benchmark(

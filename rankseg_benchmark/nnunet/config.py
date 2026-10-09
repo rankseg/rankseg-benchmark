@@ -43,6 +43,7 @@ class DatasetConfig:
     pruning_prob: float = 0.5
     smooth: float = 0.0
     unassigned_policy: str = "max_score"
+    safe_screening: bool = False
     bootstrap_samples: int = 2000
     bootstrap_seed: int = 20260717
     cluster_regex: str | None = None
@@ -134,6 +135,9 @@ def load_dataset_config(path: str | Path) -> DatasetConfig:
             "inputs.segmentation_reader must be one of "
             f"{sorted(supported_segmentation_readers)}, got {segmentation_reader!r}"
         )
+    safe_screening = decoder.get("safe_screening", False)
+    if not isinstance(safe_screening, bool):
+        raise ValueError("decoder.rankseg.safe_screening must be a boolean")
     return DatasetConfig(
         dataset_id=str(dataset["id"]),
         display_name=str(dataset.get("display_name", dataset["id"])),
@@ -160,6 +164,7 @@ def load_dataset_config(path: str | Path) -> DatasetConfig:
         pruning_prob=float(decoder.get("pruning_prob", 0.5)),
         smooth=float(decoder.get("smooth", 0.0)),
         unassigned_policy=str(decoder.get("unassigned_policy", "max_score")),
+        safe_screening=safe_screening,
         bootstrap_samples=int(evaluation.get("bootstrap_samples", 2000)),
         bootstrap_seed=int(evaluation.get("bootstrap_seed", 20260717)),
         cluster_regex=cluster_regex,

@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-import io
 import json
-import sys
 import types
 from copy import deepcopy
 
@@ -14,7 +12,7 @@ import pytest
 import torch
 from PIL import Image
 
-from rankseg_benchmark.datasets import REGISTRY, DatasetSpec, _decode_label, _decode_probs, iter_batches
+from rankseg_benchmark.datasets import REGISTRY, DatasetSpec, iter_batches
 from rankseg_benchmark.demo import (
     DEMO_THEMES,
     DemoSelection,
@@ -25,26 +23,22 @@ from rankseg_benchmark.demo import (
     _validate_demo_manifest,
     render_figure,
 )
-from rankseg_benchmark.metrics import ConfusionAccumulator, FoldMeanAccumulator, MedicalCaseAccumulator
 from rankseg_benchmark.monai_cache import (
     EXTERNAL_EXPOSURE_DECLARATION,
     _adapt_label,
     _adapt_probabilities,
     _atomic_torch_save,
+    _generator_revision,
+    _infer_case,
+    _require_monai,
     _software_info,
     _validate_external_test_provenance,
     load_monai_specs,
     resolve_cases,
     validate_probability_payload,
 )
-from rankseg_benchmark.runner import (
-    _rankseg_output_mode,
-    _rankseg_predict,
-    configure_rankseg_path,
-    format_report,
-    run_benchmark,
-)
-from rankseg_benchmark.timing import Timer
+from rankseg_benchmark.monai.paired import summarize as summarize_paired_screening
+from rankseg_benchmark.runner import format_report, run_benchmark
 
 
 def test_builtin_monai_specs_match_registered_volume_targets():
@@ -53,6 +47,9 @@ def test_builtin_monai_specs_match_registered_volume_targets():
     assert set(specs) == {
         "monai_btcv_swin_v058_msd_pancreas",
         "monai_btcv_swin_v058_msd_spleen",
+        "monai_wholebody_lowres_v027_msd_pancreas",
+        "monai_wholebody_lowres_v027_msd_spleen",
+        "monai_ventricular_v035_acdc",
     }
     for benchmark_id in specs:
         registry_spec = REGISTRY[benchmark_id]
@@ -67,7 +64,8 @@ def test_builtin_monai_specs_match_registered_volume_targets():
         bundle = specs[benchmark_id]["bundle"]
         assert source_id != bundle["supervised_training_dataset_id"]
         assert source_id not in bundle["self_supervised_pretraining_dataset_ids"]
-        assert specs[benchmark_id]["bundle"]["supervised_training_dataset"] == "Beyond the Cranial Vault (BTCV)"
+        assert bundle["supervised_training_dataset"]
+        assert _generator_revision(specs[benchmark_id]) == (1 if benchmark_id.startswith("monai_btcv_") else 2)
 
 
 def test_monai_external_test_provenance_rejects_checkpoint_source_overlap():
@@ -178,6 +176,79 @@ def test_monai_binary_output_and_label_adapters():
         _adapt_label(torch.tensor([[[3]]]), spec)
 
 
+def test_monai_wholebody_class_mapping_and_fixed_comparison_cohorts():
+    specs = load_monai_specs()
+    for organ, channel in (("pancreas", 10), ("spleen", 1)):
+        bt = specs[f"monai_btcv_swin_v058_msd_{organ}"]
+        wb = specs[f"monai_wholebody_lowres_v027_msd_{organ}"]
+        assert bt["dataset"]["split"]["case_ids"] == wb["dataset"]["split"]["case_ids"]
+        assert wb["bundle"]["checkpoint"]["path"] == "models/model_lowres.pt"
+        assert wb["output_transform"]["foreground_channel"] == channel
+        probabilities = torch.softmax(torch.randn((105, 2, 3, 4)), dim=0)
+        adapted = _adapt_probabilities(probabilities, wb)
+        assert torch.equal(adapted[1], probabilities[channel])
+        assert torch.allclose(adapted.sum(dim=0), torch.ones((2, 3, 4)))
+
+
+def test_monai_acdc_case_paths_and_label_permutation(tmp_path):
+    spec = load_monai_specs()["monai_ventricular_v035_acdc"]
+    spec["dataset"]["split"] = {"strategy": "sorted_last_n", "count": 2, "expected_total": 2}
+    for case_id in ("patient001_frame01", "patient001_frame12"):
+        for directory, suffix in (("imagesTr", "_0000"), ("labelsTr", "")):
+            path = tmp_path / directory / f"{case_id}{suffix}.nii.gz"
+            path.parent.mkdir(exist_ok=True)
+            path.touch()
+    cases = resolve_cases(spec, tmp_path)
+    assert [case_id for case_id, _, _ in cases] == ["patient001_frame01", "patient001_frame12"]
+    assert cases[0][1].name == "patient001_frame01_0000.nii.gz"
+    label = torch.tensor([[[0, 1, 2, 3]]])
+    assert torch.equal(_adapt_label(label, spec), torch.tensor([[[0, 3, 2, 1]]]))
+    with pytest.raises(ValueError, match="unmapped"):
+        _adapt_label(torch.tensor([[[4]]]), spec)
+    with pytest.raises(ValueError, match="exactly"):
+        (tmp_path / "labelsTr/patient002_frame01.nii.gz").touch()
+        resolve_cases(spec, tmp_path)
+
+
+def test_monai_slice_inferer_assembles_native_volume():
+    pytest.importorskip("monai")
+    spec = deepcopy(load_monai_specs()["monai_ventricular_v035_acdc"])
+    spec["inference"]["roi_size"] = [32, 32]
+    image = torch.randn((1, 18, 20, 3))
+    model = torch.nn.Conv2d(1, 4, kernel_size=1, bias=False)
+    torch.nn.init.zeros_(model.weight)
+
+    probabilities, elapsed_ms = _infer_case(model, image, spec, torch.device("cpu"), _require_monai())
+
+    assert probabilities.shape == (4, 18, 20, 3)
+    assert torch.allclose(probabilities, torch.full_like(probabilities, 0.25))
+    assert elapsed_ms >= 0
+
+
+def test_monai_paired_screening_summary_uses_per_volume_medians():
+    records = [
+        {
+            "changed_pixels": 2,
+            "argmax": {"median_ms": 1.0, "peak_increment_mib": 10.0},
+            "full": {"median_ms": 4.0, "peak_increment_mib": 100.0},
+            "screened": {"median_ms": 2.0, "peak_increment_mib": 20.0},
+        },
+        {
+            "changed_pixels": 3,
+            "argmax": {"median_ms": 1.5, "peak_increment_mib": 15.0},
+            "full": {"median_ms": 6.0, "peak_increment_mib": 200.0},
+            "screened": {"median_ms": 3.0, "peak_increment_mib": 40.0},
+        },
+    ]
+    summary = summarize_paired_screening(records)
+    assert summary["volumes"] == 2
+    assert summary["mean_of_volume_medians_ms"] == {"argmax": 1.25, "full": 5.0, "screened": 2.5}
+    assert summary["mean_incremental_peak_mib"] == {"argmax": 12.5, "full": 150.0, "screened": 30.0}
+    assert summary["changed_pixels"] == 5
+    with pytest.raises(ValueError, match="at least one"):
+        summarize_paired_screening([])
+
+
 def test_monai_probability_payload_validation():
     label = torch.tensor(
         [
@@ -270,6 +341,20 @@ def test_local_monai_3d_artifact_runs_end_to_end(tmp_path, metric, device):
     assert baseline.summary()["mIoU"] == 1.0
     assert rankseg.summary()["mIoU"] == 1.0
     assert baseline.summary()["unit"] == "volume"
+    if metric == "dice":
+        _, screened = run_benchmark(
+            spec,
+            artifact_dir=tmp_path,
+            device=device,
+            metric=metric,
+            warmup=1,
+            batch_size=1,
+            progress=False,
+            safe_screening=True,
+        )
+        assert screened.summary()["mDice"] == rankseg.summary()["mDice"]
+        with pytest.raises(ValueError, match="requires RMA"):
+            run_benchmark(spec, artifact_dir=tmp_path, metric="iou", safe_screening=True)
     report = format_report(
         baseline,
         rankseg,
@@ -361,5 +446,3 @@ def test_local_monai_artifact_loader_rejects_checksum_mismatch(tmp_path):
 
     with pytest.raises(ValueError, match="checksum mismatch"):
         list(iter_batches(spec, artifact_dir=tmp_path, batch_size=1))
-
-

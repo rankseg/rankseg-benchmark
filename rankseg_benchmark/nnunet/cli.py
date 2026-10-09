@@ -15,6 +15,11 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate = subparsers.add_parser("evaluate", help="Evaluate one dataset manifest")
     evaluate.add_argument("manifest", type=Path)
     evaluate.add_argument("--device", choices=("cpu", "cuda"))
+    evaluate.add_argument(
+        "--safe-screening",
+        action="store_true",
+        help="Enable RMA Dice safe screening; recorded in the result summary.",
+    )
     evaluate.add_argument("--output-dir", type=Path)
     evaluate.add_argument(
         "--case-limit",
@@ -107,6 +112,7 @@ def main(argv: list[str] | None = None) -> int:
         path = evaluate_dataset(
             load_dataset_config(args.manifest),
             device_override=args.device,
+            safe_screening_override=True if args.safe_screening else None,
             case_limit=args.case_limit,
             output_dir_override=args.output_dir,
         )

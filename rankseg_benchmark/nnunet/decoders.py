@@ -32,6 +32,7 @@ class PairedDecoders:
             pruning_prob=config.pruning_prob,
             smooth=config.smooth,
             unassigned_policy=config.unassigned_policy,
+            **({"safe_screening": True} if config.safe_screening else {}),
         )
 
     def _synchronize(self) -> None:

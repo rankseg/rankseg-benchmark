@@ -145,7 +145,7 @@ def render(summary):
               "Raw reports, per-sample JSONL counts/timings and hashes are in `artifacts/screening-final-acceptance-2026-09-22-v2/` (local, ignored by Git). The initial attempt stopped at VOC's first sample because the new independent audit rejected void label 21. Only the audit was corrected; the complete v2 run starts afresh, and no measurements from the failed attempt are reused.",
               "Reproduce using fresh output paths:", "", "```bash",
               "../env/bin/python -B scripts/benchmark_screening_acceptance.py \\",
-              "  --rankseg-path ../rankseg-nnunet-benchmark/outputs/screening-final-acceptance-2026-09-22/snapshot \\",
+              "  --rankseg-path outputs/screening-final-acceptance-2026-09-22/snapshot \\",
               "  --output-dir artifacts/screening-acceptance-new --warmup 2 --repeats 7",
               "CUDA_VISIBLE_DEVICES='' ../env/bin/python -B scripts/summarize_screening_acceptance.py \\",
               "  artifacts/screening-acceptance-new --document docs/SCREENING_ACCEPTANCE_NEW.md",

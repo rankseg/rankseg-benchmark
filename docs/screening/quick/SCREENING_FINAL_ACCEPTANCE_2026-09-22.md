@@ -154,7 +154,7 @@ Reproduce using fresh output paths:
 
 ```bash
 ../env/bin/python -B scripts/benchmark_screening_acceptance.py \
-  --rankseg-path ../rankseg-nnunet-benchmark/outputs/screening-final-acceptance-2026-09-22/snapshot \
+  --rankseg-path outputs/screening-final-acceptance-2026-09-22/snapshot \
   --output-dir artifacts/screening-acceptance-new --warmup 2 --repeats 7
 CUDA_VISIBLE_DEVICES='' ../env/bin/python -B scripts/summarize_screening_acceptance.py \
   artifacts/screening-acceptance-new --document docs/SCREENING_ACCEPTANCE_NEW.md

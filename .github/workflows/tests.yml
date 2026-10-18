@@ -33,6 +33,11 @@ jobs:
       - name: Test Quick, MONAI helpers, and entry points
         if: matrix.suite == 'quick'
         run: python -m pytest tests/quick tests/monai tests/common -q
+      - name: Rebuild the TIAToolbox table from published case scores
+        if: matrix.suite == 'quick'
+        run: |
+          python -m rankseg_benchmark.tiatoolbox.table --output "$RUNNER_TEMP/tiatoolbox-results.md"
+          cmp rankseg_benchmark/tiatoolbox/RESULTS.md "$RUNNER_TEMP/tiatoolbox-results.md"
       - name: Test nnU-Net and verify published evidence
         if: matrix.suite == 'nnunet'
         run: |

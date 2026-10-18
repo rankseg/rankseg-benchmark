@@ -41,6 +41,7 @@ include = ["rankseg_benchmark*", "rankseg_nnunet_bench*"]
 
 [tool.setuptools.package-data]
 "rankseg_benchmark.monai" = ["monai_specs.json"]
+"rankseg_benchmark.tiatoolbox" = ["README.md", "RESULTS.md", "evidence/*.csv", "metadata/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

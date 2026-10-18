@@ -1,0 +1,6 @@
+# Large or downloaded inputs belong under the repository's ignored artifacts/.
+/data/
+/checkpoints/
+/probabilities/
+/cache/
+/artifacts/

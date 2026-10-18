@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://drive.google.com/uc?id=1HMgKfb2AEf1YGE9o5oVtscv6gQrdHynM",
+    "path": "kumar/test_diff/Images/TCGA-AY-A8YK-01A-01-TS1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1RmAnrFOeLUhzZGz1ep6nCLbn0YyoGJc6",
+    "path": "kumar/test_diff/Images/TCGA-DK-A2I6-01A-01-TS1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1FhKkspjCn-yHC6cgRQgKNQ2JfOfMApO1",
+    "path": "kumar/test_diff/Images/TCGA-G2-A2EK-01A-02-TSB.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1JRsSMiBioOFjvkym1J5BhrKhQl8vrc4q",
+    "path": "kumar/test_diff/Images/TCGA-KB-A93J-01A-01-TS1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1hBQGIjVZkMU8QNkt3f9OasGijdjvn34E",
+    "path": "kumar/test_diff/Images/TCGA-NH-A8F7-01A-01-TS1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=17mvTjBQODA_OJ_0xmIkarrY6gtm1YLk3",
+    "path": "kumar/test_diff/Images/TCGA-RD-A8N9-01A-01-TS1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1LbcAZ80FjIQONzZeg4rQvgzDtfvw8eHI",
+    "path": "kumar/test_diff/Labels/TCGA-AY-A8YK-01A-01-TS1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1p199iRQSXYkkjwWv-dIJP1jTrY410uul",
+    "path": "kumar/test_diff/Labels/TCGA-DK-A2I6-01A-01-TS1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1YlthtVChoXGEu7w9fsXAc-7zyZKubIY4",
+    "path": "kumar/test_diff/Labels/TCGA-G2-A2EK-01A-02-TSB.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=11TDyjo9aamO3fmxbZeCOt-ryL4A3f_RU",
+    "path": "kumar/test_diff/Labels/TCGA-KB-A93J-01A-01-TS1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1mTwjnZ-bCwNLZ9IDi7CtbRyUYh5drUJ_",
+    "path": "kumar/test_diff/Labels/TCGA-NH-A8F7-01A-01-TS1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=13FBga8Np1NBw3WXfkleKenlUZHTv9IxU",
+    "path": "kumar/test_diff/Labels/TCGA-RD-A8N9-01A-01-TS1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Ajm87b2cguDGcj4F80eFRw8VgwKqHJmg",
+    "path": "kumar/test_same/Images/TCGA-21-5784-01Z-00-DX1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NJOICaspX3Jr559GBTT8F_Fa9QQUbv4A",
+    "path": "kumar/test_same/Images/TCGA-21-5786-01Z-00-DX1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1JG14rTdx2nxHT2ZQVcrRI6j6Bhr_Fj_M",
+    "path": "kumar/test_same/Images/TCGA-B0-5698-01Z-00-DX1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1IzrGgYk88x2K9WnthsrL-HFdSem2Q0PK",
+    "path": "kumar/test_same/Images/TCGA-B0-5710-01Z-00-DX1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1X1PA9LWVRqOegR7gwlxJfwtuw_WVDOGr",
+    "path": "kumar/test_same/Images/TCGA-CH-5767-01Z-00-DX1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1qAA_t3t8brUHY1-OuUK-K8nolhhCVG4q",
+    "path": "kumar/test_same/Images/TCGA-E2-A14V-01Z-00-DX1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1m2fe-eFfxBXboI1V-jZ5KlUxHROOWf5F",
+    "path": "kumar/test_same/Images/TCGA-E2-A1B5-01Z-00-DX1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1m754gO5SHWHTV9jLN3vy4gWeqfw2U35K",
+    "path": "kumar/test_same/Images/TCGA-G9-6362-01Z-00-DX1.tif"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1QGQGUoLbTASQXhOIBBVdbM4YAN2xNEmK",
+    "path": "kumar/test_same/Labels/TCGA-21-5784-01Z-00-DX1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1YB1yoAJrCbUuTSfwpfP-s57wTVDMYOmb",
+    "path": "kumar/test_same/Labels/TCGA-21-5786-01Z-00-DX1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1m0cvBKwXPj3H_r1MTmosfV4AMPl7v1Ml",
+    "path": "kumar/test_same/Labels/TCGA-B0-5698-01Z-00-DX1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1aCRGaYEkLoNIstEi3Wn-_J4Fu4YiigbF",
+    "path": "kumar/test_same/Labels/TCGA-B0-5710-01Z-00-DX1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=19-jabXE1P2u5opLmoJdvFX39p4EbxxvY",
+    "path": "kumar/test_same/Labels/TCGA-CH-5767-01Z-00-DX1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1o0KNt0oG0SgK5-XP4w349FeTZCprsZDh",
+    "path": "kumar/test_same/Labels/TCGA-E2-A14V-01Z-00-DX1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1njMv9_ldw6VLCLRW47kb4RAHknZ_ma04",
+    "path": "kumar/test_same/Labels/TCGA-E2-A1B5-01Z-00-DX1.mat"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1zh353P4kBhpIlZnNv1xcJ6T_8LLW2J-5",
+    "path": "kumar/test_same/Labels/TCGA-G9-6362-01Z-00-DX1.mat"
+  }
+]

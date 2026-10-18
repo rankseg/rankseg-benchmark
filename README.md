@@ -90,6 +90,8 @@ or a substitute for a complete AMOS22 cohort.
 
 - The three suites live under `rankseg_benchmark/{quick,monai,nnunet}`. Evaluation
   rules remain suite-specific; do not pool their different scoring units.
+- An exploratory [TIAToolbox comparison](rankseg_benchmark/tiatoolbox/README.md)
+  has its own code, case-level evidence, and [generated results table](rankseg_benchmark/tiatoolbox/RESULTS.md).
 - Original commands `rankseg-monai-cache`, `rankseg-monai-demo`, and
   `rankseg-nnunet-bench` remain available. [Migration and workspace guide](docs/MIGRATION.md).
 - Checkpoints, images, probability caches, and local outputs stay outside Git.

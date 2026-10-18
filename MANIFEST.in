@@ -7,4 +7,5 @@ recursive-include environments *.txt *.md
 recursive-include tests *.py
 recursive-include scripts *.py *.sh *.md
 recursive-include results *.md
+recursive-include rankseg_benchmark/tiatoolbox *.md *.csv *.json
 global-exclude __pycache__ *.py[cod]

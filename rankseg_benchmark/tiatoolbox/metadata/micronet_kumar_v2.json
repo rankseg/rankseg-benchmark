@@ -1,0 +1,473 @@
+{
+  "run_date": "2026-10-26",
+  "inference": {
+    "runtime": {
+      "packages": {
+        "tiatoolbox": "2.1.3",
+        "torch": "2.11.0",
+        "torchvision": "0.26.0",
+        "numpy": "2.4.3",
+        "scipy": "1.17.0",
+        "scikit-image": "0.26.0",
+        "pillow": "12.1.1",
+        "dask": "2026.7.0",
+        "zarr": "3.1.6",
+        "rankseg": "0.0.8",
+        "triton": "3.6.0"
+      },
+      "gpu": "NVIDIA GeForce RTX 3090",
+      "cuda": "13.0",
+      "tiatoolbox_source_sha256": {
+        "models/architecture/micronet.py": "9e241e479f5405fcc7e3092acef7a10257fad2d32813f91c1d1533ea254f3360",
+        "models/engine/multi_task_segmentor.py": "15747635dfa643681227d3ab24f89c8f5a5700387166540c0c177f92f0433c45",
+        "models/engine/engine_abc.py": "44d671c6ada54eb56a731def13e948289b639d6d53606eb826aec5ce42de42dd",
+        "models/dataset/dataset_abc.py": "73a4ae6488045d9aa85c4737e87ba60789c98a9369c4fbe5b5b1c83b4eda72cd",
+        "data/pretrained_model.yaml": "71258a85a955f77b34e64fb42fc98397dfb754d374ab758ac4d6b5ff700ac793",
+        "models/architecture/hovernet.py": "4c004c793069824db12f8d880e4773b9034728c3235328cdaa46897a8a90fa0f",
+        "models/architecture/unet.py": "5b7b166955d9f8508b49c6fff382801d58a306b064fad0d11fbec621fc5f3179",
+        "models/engine/semantic_segmentor.py": "5a4c136eb3cc7f8ec59ceb61c7e74b607a6e926002928c9e1a9adf9f5163f9ec",
+        "models/engine/patch_predictor.py": "e15457c30d2880dffd18f87376f4a1880d5451d118e44f19ab6fae6b18260978"
+      }
+    },
+    "inputs": [
+      {
+        "id": "test_same__TCGA-21-5784-01Z-00-DX1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Images/TCGA-21-5784-01Z-00-DX1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Labels/TCGA-21-5784-01Z-00-DX1.mat",
+        "image_sha256": "8e05b6f3c92f33f7f2606bee2fdb223db92f3b94559d2748b67d0b2d62960100",
+        "label_sha256": "006a8b07beb8f1c7a0eb4f0cecfb7347867696e3eeeeca592057bba9c4fce2d8",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_same__TCGA-21-5786-01Z-00-DX1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Images/TCGA-21-5786-01Z-00-DX1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Labels/TCGA-21-5786-01Z-00-DX1.mat",
+        "image_sha256": "fbee9258bc8df706b9bba8b30a8064b4aede797a54224715af28564c342296ef",
+        "label_sha256": "438b3be629b23dfababd2c69b4c9ac73d5f4615e6d4cd04aa0dd23d441b20e79",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_same__TCGA-B0-5698-01Z-00-DX1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Images/TCGA-B0-5698-01Z-00-DX1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Labels/TCGA-B0-5698-01Z-00-DX1.mat",
+        "image_sha256": "c64a9d2838d8a16f6ba5cc93a5fc021cedf069da1c347262237ae1af7448131d",
+        "label_sha256": "647f73d5de88aeda8b9c8143de9046e4e307d879030c18183268f1dd932baa5a",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_same__TCGA-B0-5710-01Z-00-DX1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Images/TCGA-B0-5710-01Z-00-DX1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Labels/TCGA-B0-5710-01Z-00-DX1.mat",
+        "image_sha256": "0eb115e1aee44ff1fc3ee9cc496319d02212215a30922bb2e65da778fa7c611a",
+        "label_sha256": "2efd1f7e317c31bb2fb1298bbf4c287531db3a579c48c2eebe3c9e7408f5a4a4",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_same__TCGA-CH-5767-01Z-00-DX1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Images/TCGA-CH-5767-01Z-00-DX1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Labels/TCGA-CH-5767-01Z-00-DX1.mat",
+        "image_sha256": "aa2865bd0cd60617d9372659bd3284fee8d132d9c79c1008e1fae7e6aa87dfec",
+        "label_sha256": "630504e2bf41b3bacee6ed0f96cae7143066ec6e96ec893f71e173aaf5a169f9",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_same__TCGA-E2-A14V-01Z-00-DX1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Images/TCGA-E2-A14V-01Z-00-DX1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Labels/TCGA-E2-A14V-01Z-00-DX1.mat",
+        "image_sha256": "c7c2e2b03cfedc1e59a6a94d9628ac60681b0e30024273c650d0b8a31974fb1f",
+        "label_sha256": "7d55c6ee46995364cb26a23951770178ca13696590a603386f749d79754afd4f",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_same__TCGA-E2-A1B5-01Z-00-DX1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Images/TCGA-E2-A1B5-01Z-00-DX1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Labels/TCGA-E2-A1B5-01Z-00-DX1.mat",
+        "image_sha256": "26e77a18d6ea4ee5224b84e5837a207e60c634ec4753e7ddfa248537d3907210",
+        "label_sha256": "ca42bd2458ab9c5122e2b5550b20b91acc8fbf6361136c98c324863c12de8d04",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_same__TCGA-G9-6362-01Z-00-DX1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Images/TCGA-G9-6362-01Z-00-DX1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_same/Labels/TCGA-G9-6362-01Z-00-DX1.mat",
+        "image_sha256": "4be4e6d71053eee0408fcffe8a7ca40d758a03053d9a3302d395a2a247276423",
+        "label_sha256": "017cb844dcbbb4ab14dff06396cb8a602ff9453dfce47e89c571f966fbe55c90",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_diff__TCGA-AY-A8YK-01A-01-TS1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Images/TCGA-AY-A8YK-01A-01-TS1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Labels/TCGA-AY-A8YK-01A-01-TS1.mat",
+        "image_sha256": "7482e9182274d5a3a1d119dc66c7009fa55b2958cc0d0c464eb616da91f94352",
+        "label_sha256": "612ae69c40f4924dd7ddf232597bce5dbcb816e438e2cdbc85d3775af8ca295f",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_diff__TCGA-DK-A2I6-01A-01-TS1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Images/TCGA-DK-A2I6-01A-01-TS1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Labels/TCGA-DK-A2I6-01A-01-TS1.mat",
+        "image_sha256": "657f7438b8c6f65715c1e24b3f00ef0ee2a25eeb8276593ab7874cb67354a959",
+        "label_sha256": "2d70c9c793e20d7e2b95b1049c575c76fd133032b376bef81ff67fcac09b9dab",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_diff__TCGA-G2-A2EK-01A-02-TSB",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Images/TCGA-G2-A2EK-01A-02-TSB.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Labels/TCGA-G2-A2EK-01A-02-TSB.mat",
+        "image_sha256": "31ae0d866e2b7a8902f690211ce08aaa8a3c59be31174ff16c6c6325a8dad0f9",
+        "label_sha256": "4e67b21bbdc7a1f76124f4578eaaa0115a4d3b221e566526cd8a49c0e5cf04cb",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_diff__TCGA-KB-A93J-01A-01-TS1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Images/TCGA-KB-A93J-01A-01-TS1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Labels/TCGA-KB-A93J-01A-01-TS1.mat",
+        "image_sha256": "a5306d53283b4224c63742108f5c340c6e5de52c685c39f15a434c30fcc3baba",
+        "label_sha256": "464aa36994aa707b73bf197aa1e34d30c69709e527ec9f33309aa91af136b8e9",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_diff__TCGA-NH-A8F7-01A-01-TS1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Images/TCGA-NH-A8F7-01A-01-TS1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Labels/TCGA-NH-A8F7-01A-01-TS1.mat",
+        "image_sha256": "be919c53a36bc39f084888587acb5afc2aec22fc57367a3ebe3a26f76f2e0c81",
+        "label_sha256": "bf6c16ef6a9a92b852706d6d41610bf25c7bf063238ef1aa6e356322df2164bf",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_diff__TCGA-RD-A8N9-01A-01-TS1",
+        "image": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Images/TCGA-RD-A8N9-01A-01-TS1.tif",
+        "label": "artifacts/tiatoolbox_hovernet_kumar/data/kumar/test_diff/Labels/TCGA-RD-A8N9-01A-01-TS1.mat",
+        "image_sha256": "bfc46bb91292a951bc167401e74f589c27d864fbd4bcb0333efd21320a19563d",
+        "label_sha256": "430d3bf15387c0e960217e89c81468069d3db4eb1dec8c36b8bb1b097210a379",
+        "shape": [
+          1000,
+          1000
+        ]
+      }
+    ],
+    "model": "micronet-consep",
+    "checkpoint_sha256": "f085d591f74cf8de3a7a5a75f08fab3e47859c49bfc7415bc567113dba778279",
+    "batch_size": 4,
+    "patch_mode": false,
+    "auto_get_mask": false,
+    "mpp": 0.25,
+    "torch_compile_mode": "disable",
+    "num_workers": 0,
+    "ioconfig": "registered defaults"
+  },
+  "decoder": {
+    "manifest_sha256": "852f75139fd037c4b2e41b1a3c94b1a25141c3a96ce62b77c6265b6e0996fed7",
+    "rankseg": {
+      "rankseg_version": "0.0.8",
+      "git_revision": "361ccc0aff14e637a13bb0f70e15eb606b083157",
+      "source_sha256": "f0ff60cff120f8c6e1b663bd29b42351a62df735f23335a06852ced4e66b3262",
+      "files_hashed": [
+        "functional.py",
+        "_rankseg_algo.py",
+        "_screening.py",
+        "_screening_cuda.py"
+      ]
+    },
+    "metric": "dice",
+    "solver": "RMA",
+    "safe_screening": true,
+    "pruning_prob": 0.5,
+    "smooth": 0.0
+  },
+  "evidence_csv_sha256": "326b7f9d2313fc9c9edd46674eaeda619e6077b87b6325ba56b8960216435ca9",
+  "official_engine_and_adapter_exact_match_cases": [
+    "test_same__TCGA-21-5784-01Z-00-DX1",
+    "test_same__TCGA-21-5786-01Z-00-DX1",
+    "test_same__TCGA-B0-5698-01Z-00-DX1",
+    "test_same__TCGA-B0-5710-01Z-00-DX1",
+    "test_same__TCGA-CH-5767-01Z-00-DX1",
+    "test_same__TCGA-E2-A14V-01Z-00-DX1",
+    "test_same__TCGA-E2-A1B5-01Z-00-DX1",
+    "test_same__TCGA-G9-6362-01Z-00-DX1",
+    "test_diff__TCGA-AY-A8YK-01A-01-TS1",
+    "test_diff__TCGA-DK-A2I6-01A-01-TS1",
+    "test_diff__TCGA-G2-A2EK-01A-02-TSB",
+    "test_diff__TCGA-KB-A93J-01A-01-TS1",
+    "test_diff__TCGA-NH-A8F7-01A-01-TS1",
+    "test_diff__TCGA-RD-A8N9-01A-01-TS1"
+  ],
+  "migration_diagnostics": [
+    {
+      "id": "test_same__TCGA-21-5784-01Z-00-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.6802456651826949,
+        "raw_dice": 0.6862089232311708,
+        "aji": 0.450700445494069,
+        "pq": 0.38169462938154697
+      },
+      "probability_mean_absolute_difference": 0.005356068257242441,
+      "raw_disagreement_pixels": 7300
+    },
+    {
+      "id": "test_same__TCGA-21-5786-01Z-00-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.46600175168209007,
+        "raw_dice": 0.47302010645785875,
+        "aji": 0.27235719678615294,
+        "pq": 0.18869434007521124
+      },
+      "probability_mean_absolute_difference": 0.007747779134660959,
+      "raw_disagreement_pixels": 13567
+    },
+    {
+      "id": "test_same__TCGA-B0-5698-01Z-00-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5717098608158474,
+        "raw_dice": 0.5848482908718474,
+        "aji": 0.3857668967779451,
+        "pq": 0.3058895240986526
+      },
+      "probability_mean_absolute_difference": 0.0038479501381516457,
+      "raw_disagreement_pixels": 4368
+    },
+    {
+      "id": "test_same__TCGA-B0-5710-01Z-00-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7542973395315925,
+        "raw_dice": 0.756643459142543,
+        "aji": 0.5621365607844007,
+        "pq": 0.5076537827116291
+      },
+      "probability_mean_absolute_difference": 0.005093860439956188,
+      "raw_disagreement_pixels": 7691
+    },
+    {
+      "id": "test_same__TCGA-CH-5767-01Z-00-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.6462525190134826,
+        "raw_dice": 0.6488672788367735,
+        "aji": 0.4418415227976981,
+        "pq": 0.3881514575119535
+      },
+      "probability_mean_absolute_difference": 0.008914820849895477,
+      "raw_disagreement_pixels": 16258
+    },
+    {
+      "id": "test_same__TCGA-E2-A14V-01Z-00-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7451946279685133,
+        "raw_dice": 0.7476080302039425,
+        "aji": 0.5062519235898804,
+        "pq": 0.45779028993143106
+      },
+      "probability_mean_absolute_difference": 0.01535070687532425,
+      "raw_disagreement_pixels": 23297
+    },
+    {
+      "id": "test_same__TCGA-E2-A1B5-01Z-00-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7250461649714401,
+        "raw_dice": 0.7284911168429417,
+        "aji": 0.48422742952301656,
+        "pq": 0.4253586130999417
+      },
+      "probability_mean_absolute_difference": 0.006034461781382561,
+      "raw_disagreement_pixels": 9339
+    },
+    {
+      "id": "test_same__TCGA-G9-6362-01Z-00-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7010483330155268,
+        "raw_dice": 0.7043820976703176,
+        "aji": 0.5104605070375368,
+        "pq": 0.4098618183575212
+      },
+      "probability_mean_absolute_difference": 0.016280511394143105,
+      "raw_disagreement_pixels": 24732
+    },
+    {
+      "id": "test_diff__TCGA-AY-A8YK-01A-01-TS1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.34446288185849133,
+        "raw_dice": 0.35345518095099393,
+        "aji": 0.17241335782225337,
+        "pq": 0.10787039554527986
+      },
+      "probability_mean_absolute_difference": 0.004484234843403101,
+      "raw_disagreement_pixels": 4337
+    },
+    {
+      "id": "test_diff__TCGA-DK-A2I6-01A-01-TS1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.2771848766838029,
+        "raw_dice": 0.2848472888555318,
+        "aji": 0.14473883926092382,
+        "pq": 0.1275807561093767
+      },
+      "probability_mean_absolute_difference": 0.001995511818677187,
+      "raw_disagreement_pixels": 1841
+    },
+    {
+      "id": "test_diff__TCGA-G2-A2EK-01A-02-TSB",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5280976647139074,
+        "raw_dice": 0.5447594181275643,
+        "aji": 0.3292195364932886,
+        "pq": 0.32029058104019914
+      },
+      "probability_mean_absolute_difference": 0.0040275938808918,
+      "raw_disagreement_pixels": 5151
+    },
+    {
+      "id": "test_diff__TCGA-KB-A93J-01A-01-TS1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7334576535497968,
+        "raw_dice": 0.7421511649158204,
+        "aji": 0.542544164159531,
+        "pq": 0.48892859184162346
+      },
+      "probability_mean_absolute_difference": 0.01673024520277977,
+      "raw_disagreement_pixels": 23920
+    },
+    {
+      "id": "test_diff__TCGA-NH-A8F7-01A-01-TS1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.4224208316323555,
+        "raw_dice": 0.43036064657021783,
+        "aji": 0.21701609487505294,
+        "pq": 0.12843864548217446
+      },
+      "probability_mean_absolute_difference": 0.004478412214666605,
+      "raw_disagreement_pixels": 5208
+    },
+    {
+      "id": "test_diff__TCGA-RD-A8N9-01A-01-TS1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.6748002940628155,
+        "raw_dice": 0.684943120377179,
+        "aji": 0.4764908286549556,
+        "pq": 0.4289209001403237
+      },
+      "probability_mean_absolute_difference": 0.020529691129922867,
+      "raw_disagreement_pixels": 34545
+    }
+  ],
+  "padding_audit": {
+    "runtime": {
+      "packages": {
+        "tiatoolbox": "2.1.3",
+        "torch": "2.11.0",
+        "torchvision": "0.26.0",
+        "numpy": "2.4.3",
+        "scipy": "1.17.0",
+        "scikit-image": "0.26.0",
+        "pillow": "12.1.1",
+        "dask": "2026.7.0",
+        "zarr": "3.1.6",
+        "rankseg": "0.0.8",
+        "triton": "3.6.0"
+      },
+      "gpu": "NVIDIA GeForce RTX 3090",
+      "cuda": "13.0",
+      "tiatoolbox_source_sha256": {
+        "models/architecture/micronet.py": "9e241e479f5405fcc7e3092acef7a10257fad2d32813f91c1d1533ea254f3360",
+        "models/engine/multi_task_segmentor.py": "15747635dfa643681227d3ab24f89c8f5a5700387166540c0c177f92f0433c45",
+        "models/engine/engine_abc.py": "44d671c6ada54eb56a731def13e948289b639d6d53606eb826aec5ce42de42dd",
+        "models/dataset/dataset_abc.py": "73a4ae6488045d9aa85c4737e87ba60789c98a9369c4fbe5b5b1c83b4eda72cd",
+        "data/pretrained_model.yaml": "71258a85a955f77b34e64fb42fc98397dfb754d374ab758ac4d6b5ff700ac793",
+        "models/architecture/hovernet.py": "4c004c793069824db12f8d880e4773b9034728c3235328cdaa46897a8a90fa0f",
+        "models/architecture/unet.py": "5b7b166955d9f8508b49c6fff382801d58a306b064fad0d11fbec621fc5f3179",
+        "models/engine/semantic_segmentor.py": "5a4c136eb3cc7f8ec59ceb61c7e74b607a6e926002928c9e1a9adf9f5163f9ec",
+        "models/engine/patch_predictor.py": "e15457c30d2880dffd18f87376f4a1880d5451d118e44f19ab6fae6b18260978"
+      }
+    },
+    "checkpoint_sha256": "f085d591f74cf8de3a7a5a75f08fab3e47859c49bfc7415bc567113dba778279",
+    "cases": [
+      {
+        "id": "test_same__TCGA-21-5784-01Z-00-DX1",
+        "patches": 49,
+        "padding": {
+          "0": {
+            "head_mean_absolute_errors": [
+              7.074329316791861e-11
+            ],
+            "head_max_absolute_errors": [
+              5.960464477539063e-08
+            ],
+            "raw_disagreement_pixels": 0,
+            "replay_scores": {
+              "dice": 0.6802456651826949,
+              "raw_dice": 0.6862089232311708,
+              "aji": 0.450700445494069,
+              "pq": 0.38169462938154697
+            },
+            "reference_scores": {
+              "dice": 0.6802456651826949,
+              "raw_dice": 0.6862089232311708,
+              "aji": 0.450700445494069,
+              "pq": 0.38169462938154697
+            }
+          },
+          "255": {
+            "head_mean_absolute_errors": [
+              1.595399012899179e-08
+            ],
+            "head_max_absolute_errors": [
+              0.00013858824968338013
+            ],
+            "raw_disagreement_pixels": 0,
+            "replay_scores": {
+              "dice": 0.6783431436668846,
+              "raw_dice": 0.6863764479428041,
+              "aji": 0.4492155341415888,
+              "pq": 0.3788740651561664
+            },
+            "reference_scores": {
+              "dice": 0.6783431436668846,
+              "raw_dice": 0.6863764479428041,
+              "aji": 0.4492155341415888,
+              "pq": 0.3788740651561664
+            }
+          }
+        }
+      }
+    ],
+    "complete_cohort": false,
+    "selection": "first N cases in manifest order"
+  }
+}

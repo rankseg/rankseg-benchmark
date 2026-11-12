@@ -1,0 +1,481 @@
+{
+  "run_date": "2026-10-26",
+  "inference": {
+    "runtime": {
+      "packages": {
+        "tiatoolbox": "2.1.3",
+        "torch": "2.11.0",
+        "torchvision": "0.26.0",
+        "numpy": "2.4.3",
+        "scipy": "1.17.0",
+        "scikit-image": "0.26.0",
+        "pillow": "12.1.1",
+        "dask": "2026.7.0",
+        "zarr": "3.1.6",
+        "rankseg": "0.0.8",
+        "triton": "3.6.0"
+      },
+      "gpu": "NVIDIA GeForce RTX 3090",
+      "cuda": "13.0",
+      "tiatoolbox_source_sha256": {
+        "models/architecture/micronet.py": "9e241e479f5405fcc7e3092acef7a10257fad2d32813f91c1d1533ea254f3360",
+        "models/engine/multi_task_segmentor.py": "15747635dfa643681227d3ab24f89c8f5a5700387166540c0c177f92f0433c45",
+        "models/engine/engine_abc.py": "44d671c6ada54eb56a731def13e948289b639d6d53606eb826aec5ce42de42dd",
+        "models/dataset/dataset_abc.py": "73a4ae6488045d9aa85c4737e87ba60789c98a9369c4fbe5b5b1c83b4eda72cd",
+        "data/pretrained_model.yaml": "71258a85a955f77b34e64fb42fc98397dfb754d374ab758ac4d6b5ff700ac793",
+        "models/architecture/hovernet.py": "4c004c793069824db12f8d880e4773b9034728c3235328cdaa46897a8a90fa0f",
+        "models/architecture/unet.py": "5b7b166955d9f8508b49c6fff382801d58a306b064fad0d11fbec621fc5f3179",
+        "models/engine/semantic_segmentor.py": "5a4c136eb3cc7f8ec59ceb61c7e74b607a6e926002928c9e1a9adf9f5163f9ec",
+        "models/engine/patch_predictor.py": "e15457c30d2880dffd18f87376f4a1880d5451d118e44f19ab6fae6b18260978"
+      }
+    },
+    "inputs": [
+      {
+        "id": "test_1",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_1.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_1.mat",
+        "image_sha256": "591697b778fa9defa21f880f0c45e91ebfb7ca50dd5a8f0405284b9a3b8f5f2d",
+        "label_sha256": "0c21bbf7c5223c81851bc02e9de96c41977d02dfeb960ecf542fec2f62bf749c",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_2",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_2.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_2.mat",
+        "image_sha256": "9ba3789cf144677cbf31ae99de580bd1c252e6032ddc4c420c170487fc7ee4b7",
+        "label_sha256": "39a026fc149ad64a2318d5a1e5bad4dc8a582b470f5468f86410115a34021bdc",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_3",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_3.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_3.mat",
+        "image_sha256": "8525a63b0315867ddf4a609f5e2abf0f1a3726fef6455ab43cdf866b1032d4ca",
+        "label_sha256": "25a8b71005a742388d2f57b10b2d7e7140796678fde4f779f6f9f664c1063f7f",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_4",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_4.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_4.mat",
+        "image_sha256": "d05842f48d20adb3b1619c05a328559957c4d7bb18129acbc9f88f12d676afdf",
+        "label_sha256": "b3058456fc02575d10004df94a56fe7c5aef77ae71ae25bd7819e0fcf0ff7870",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_5",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_5.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_5.mat",
+        "image_sha256": "31935907ba0180ade712c8055a418529013f491b4d4f700aa760e2b6e0fb19b6",
+        "label_sha256": "47b6923a307ee5e0b5664b41f5c79e9f1635c7b5df379a3cd7d40b4548a0aa0b",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_6",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_6.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_6.mat",
+        "image_sha256": "671faf49f772289e6392bacf4e2dab1f5060fdf0e12a10225e8a2b6e00770d4a",
+        "label_sha256": "bf952609c44be0130d44f9054b1ffe98f50b22965d56b56e3198b2102e7f6439",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_7",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_7.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_7.mat",
+        "image_sha256": "631cec725e1e9ef6ed60b87ebb3c8f8d7ca815bec94933394916719c59a8454b",
+        "label_sha256": "e3121467fd098cf5336a7c6b4b11e441f939ee2b4c3f9ad29bfad36cf517f827",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_8",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_8.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_8.mat",
+        "image_sha256": "9aaf5ad748110c55d5a69df7ec8b1211f43444e98a2487859a427c35d1543593",
+        "label_sha256": "4ffd92b55497c9ffc54fe139ec0392bc6ee81d90f24867195e743afcd6c3109f",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_9",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_9.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_9.mat",
+        "image_sha256": "fbb9ab65e4193c3b2f2b000a0fd848581fe1e5f8b9459c0912718af0d584e911",
+        "label_sha256": "8a2b638063f7948b2adeefe94b708e202266afb96e294a08508d244fb81fa8e2",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_10",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_10.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_10.mat",
+        "image_sha256": "816cf770cf0270543d9ef7a48d9c0259e8730838728569eacee90b4d7978d226",
+        "label_sha256": "b13183193c817025b992aecde068e1e50cf278f663c8fc711c2818c9057446ae",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_11",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_11.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_11.mat",
+        "image_sha256": "d27e8fbdae2f2d1a40a06fff69fbd1b9211d89981844ec2beb8c572e2cf63f2a",
+        "label_sha256": "dfcb235398ce089d10e2796f937db9edc3113b6e348841ce1a4136d1eec8a5be",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_12",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_12.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_12.mat",
+        "image_sha256": "137dc08d0bb20f478cbcaa367d776f732b9a8cece30aed225bffa4f5fdc5eea4",
+        "label_sha256": "dc94e4f4dea734c55e15ad7f25096096751109a945120ac9c8986448bb0f0032",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_13",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_13.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_13.mat",
+        "image_sha256": "2da240ddf65ffd6858bef3a037a1b0793c6880095cb02ce2d53a5149c7cb7c59",
+        "label_sha256": "ea002a74f04c2545b28921c47aee115922dbcd47fd342f6ccc88b718ac07bff9",
+        "shape": [
+          1000,
+          1000
+        ]
+      },
+      {
+        "id": "test_14",
+        "image": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Images/test_14.png",
+        "label": "artifacts/tiatoolbox_micronet_consep/CoNSeP/Test/Labels/test_14.mat",
+        "image_sha256": "68329f798e3d766ca965ffef5bbbd32cb69c9c1bf46ef3f489fda8703266d2af",
+        "label_sha256": "d0cc4afe096b09c9fe8c761a74d830b30f4ee50bfadc1e02e9925e41677f983b",
+        "shape": [
+          1000,
+          1000
+        ]
+      }
+    ],
+    "model": "hovernet_original-consep",
+    "checkpoint_sha256": "77e5baf98b1a2e4c5991c82bcf08a7c1b955e146f0ba9e655b292e1686cf646e",
+    "batch_size": 4,
+    "patch_mode": false,
+    "auto_get_mask": false,
+    "mpp": 0.25,
+    "torch_compile_mode": "disable",
+    "num_workers": 0,
+    "ioconfig": "registered defaults"
+  },
+  "decoder": {
+    "manifest_sha256": "e18002ce6f977ba47de5fa828c552af012402bd243d483c678b0a5bb3d251a4b",
+    "rankseg": {
+      "rankseg_version": "0.0.8",
+      "git_revision": "361ccc0aff14e637a13bb0f70e15eb606b083157",
+      "source_sha256": "f0ff60cff120f8c6e1b663bd29b42351a62df735f23335a06852ced4e66b3262",
+      "files_hashed": [
+        "functional.py",
+        "_rankseg_algo.py",
+        "_screening.py",
+        "_screening_cuda.py"
+      ]
+    },
+    "metric": "dice",
+    "solver": "RMA",
+    "safe_screening": true,
+    "pruning_prob": 0.5,
+    "smooth": 0.0
+  },
+  "evidence_csv_sha256": "a8abe633865aec62e016797afd2998ed4cee3a50e81ba0a436f5af4e5023c7b9",
+  "official_engine_and_adapter_exact_match_cases": [
+    "test_1",
+    "test_2",
+    "test_3",
+    "test_4",
+    "test_5",
+    "test_6",
+    "test_7",
+    "test_8",
+    "test_9",
+    "test_10",
+    "test_11",
+    "test_12",
+    "test_13",
+    "test_14"
+  ],
+  "migration_diagnostics": [
+    {
+      "id": "test_1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8522807418844475,
+        "raw_dice": 0.8534718905986804,
+        "aji": 0.5324882493501037,
+        "pq": 0.5225426284255429
+      },
+      "probability_mean_absolute_difference": 0.007959960028529167,
+      "raw_disagreement_pixels": 8205
+    },
+    {
+      "id": "test_2",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7574988318826199,
+        "raw_dice": 0.7509555373923397,
+        "aji": 0.45968375632418423,
+        "pq": 0.4027341820849825
+      },
+      "probability_mean_absolute_difference": 0.005162895657122135,
+      "raw_disagreement_pixels": 4968
+    },
+    {
+      "id": "test_3",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8748289739327305,
+        "raw_dice": 0.8748013868427963,
+        "aji": 0.57823891384062,
+        "pq": 0.5119193218368044
+      },
+      "probability_mean_absolute_difference": 0.006957272533327341,
+      "raw_disagreement_pixels": 6841
+    },
+    {
+      "id": "test_4",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8800794771087057,
+        "raw_dice": 0.8798780206071247,
+        "aji": 0.5681714309172265,
+        "pq": 0.4930481034806756
+      },
+      "probability_mean_absolute_difference": 0.00745536619797349,
+      "raw_disagreement_pixels": 7579
+    },
+    {
+      "id": "test_5",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.828327790599988,
+        "raw_dice": 0.8290800720939193,
+        "aji": 0.5281766115289505,
+        "pq": 0.5373889376288492
+      },
+      "probability_mean_absolute_difference": 0.009480697102844715,
+      "raw_disagreement_pixels": 8788
+    },
+    {
+      "id": "test_6",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8410482076637824,
+        "raw_dice": 0.8644366281206302,
+        "aji": 0.5249966187116936,
+        "pq": 0.5255391219625113
+      },
+      "probability_mean_absolute_difference": 0.003599601099267602,
+      "raw_disagreement_pixels": 3207
+    },
+    {
+      "id": "test_7",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7891626339712166,
+        "raw_dice": 0.7975007810059357,
+        "aji": 0.46480974242248885,
+        "pq": 0.4245631201093358
+      },
+      "probability_mean_absolute_difference": 0.003089052392169833,
+      "raw_disagreement_pixels": 3110
+    },
+    {
+      "id": "test_8",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8595787013585501,
+        "raw_dice": 0.8597469945784553,
+        "aji": 0.46183185476764,
+        "pq": 0.4140016324474129
+      },
+      "probability_mean_absolute_difference": 0.011139453388750553,
+      "raw_disagreement_pixels": 11169
+    },
+    {
+      "id": "test_9",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8245836540480023,
+        "raw_dice": 0.8259874144720489,
+        "aji": 0.515381235537069,
+        "pq": 0.5257158891917817
+      },
+      "probability_mean_absolute_difference": 0.0055060978047549725,
+      "raw_disagreement_pixels": 5368
+    },
+    {
+      "id": "test_10",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8585091708400758,
+        "raw_dice": 0.8575712143928036,
+        "aji": 0.608886029116062,
+        "pq": 0.5895509070779468
+      },
+      "probability_mean_absolute_difference": 0.008098424412310123,
+      "raw_disagreement_pixels": 8519
+    },
+    {
+      "id": "test_11",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8478312262007335,
+        "raw_dice": 0.8497542318088694,
+        "aji": 0.4530141921302152,
+        "pq": 0.3828639760567226
+      },
+      "probability_mean_absolute_difference": 0.009375465102493763,
+      "raw_disagreement_pixels": 9693
+    },
+    {
+      "id": "test_12",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8475416911353715,
+        "raw_dice": 0.8475295030781986,
+        "aji": 0.6302417903611042,
+        "pq": 0.6100748173206533
+      },
+      "probability_mean_absolute_difference": 0.008295562118291855,
+      "raw_disagreement_pixels": 8126
+    },
+    {
+      "id": "test_13",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8575308412948706,
+        "raw_dice": 0.8575087142557998,
+        "aji": 0.5601644272654764,
+        "pq": 0.5411189303211382
+      },
+      "probability_mean_absolute_difference": 0.008803497068583965,
+      "raw_disagreement_pixels": 8388
+    },
+    {
+      "id": "test_14",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8246766275084656,
+        "raw_dice": 0.8238951519217239,
+        "aji": 0.6304401151606698,
+        "pq": 0.6181449888614398
+      },
+      "probability_mean_absolute_difference": 0.008518523536622524,
+      "raw_disagreement_pixels": 7926
+    }
+  ],
+  "padding_audit": {
+    "runtime": {
+      "packages": {
+        "tiatoolbox": "2.1.3",
+        "torch": "2.11.0",
+        "torchvision": "0.26.0",
+        "numpy": "2.4.3",
+        "scipy": "1.17.0",
+        "scikit-image": "0.26.0",
+        "pillow": "12.1.1",
+        "dask": "2026.7.0",
+        "zarr": "3.1.6",
+        "rankseg": "0.0.8",
+        "triton": "3.6.0"
+      },
+      "gpu": "NVIDIA GeForce RTX 3090",
+      "cuda": "13.0",
+      "tiatoolbox_source_sha256": {
+        "models/architecture/micronet.py": "9e241e479f5405fcc7e3092acef7a10257fad2d32813f91c1d1533ea254f3360",
+        "models/engine/multi_task_segmentor.py": "15747635dfa643681227d3ab24f89c8f5a5700387166540c0c177f92f0433c45",
+        "models/engine/engine_abc.py": "44d671c6ada54eb56a731def13e948289b639d6d53606eb826aec5ce42de42dd",
+        "models/dataset/dataset_abc.py": "73a4ae6488045d9aa85c4737e87ba60789c98a9369c4fbe5b5b1c83b4eda72cd",
+        "data/pretrained_model.yaml": "71258a85a955f77b34e64fb42fc98397dfb754d374ab758ac4d6b5ff700ac793",
+        "models/architecture/hovernet.py": "4c004c793069824db12f8d880e4773b9034728c3235328cdaa46897a8a90fa0f",
+        "models/architecture/unet.py": "5b7b166955d9f8508b49c6fff382801d58a306b064fad0d11fbec621fc5f3179",
+        "models/engine/semantic_segmentor.py": "5a4c136eb3cc7f8ec59ceb61c7e74b607a6e926002928c9e1a9adf9f5163f9ec",
+        "models/engine/patch_predictor.py": "e15457c30d2880dffd18f87376f4a1880d5451d118e44f19ab6fae6b18260978"
+      }
+    },
+    "checkpoint_sha256": "77e5baf98b1a2e4c5991c82bcf08a7c1b955e146f0ba9e655b292e1686cf646e",
+    "cases": [
+      {
+        "id": "test_1",
+        "patches": 169,
+        "padding": {
+          "0": {
+            "head_mean_absolute_errors": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "head_max_absolute_errors": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "raw_disagreement_pixels": 0,
+            "replay_scores": {
+              "dice": 0.8522807418844475,
+              "raw_dice": 0.8534718905986804,
+              "aji": 0.5324882493501037,
+              "pq": 0.5225426284255429
+            },
+            "reference_scores": {
+              "dice": 0.8522807418844475,
+              "raw_dice": 0.8534718905986804,
+              "aji": 0.5324882493501037,
+              "pq": 0.5225426284255429
+            }
+          },
+          "255": {
+            "head_mean_absolute_errors": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "head_max_absolute_errors": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "raw_disagreement_pixels": 0,
+            "replay_scores": {
+              "dice": 0.8651005754181192,
+              "raw_dice": 0.866145879457648,
+              "aji": 0.5471029520789311,
+              "pq": 0.5423413845076999
+            },
+            "reference_scores": {
+              "dice": 0.8651005754181192,
+              "raw_dice": 0.866145879457648,
+              "aji": 0.5471029520789311,
+              "pq": 0.5423413845076999
+            }
+          }
+        }
+      }
+    ],
+    "complete_cohort": false,
+    "selection": "first N cases in manifest order"
+  }
+}

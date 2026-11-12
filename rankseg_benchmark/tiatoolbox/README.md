@@ -11,6 +11,12 @@ a [generated results report](RESULTS.md). Rebuilding the report requires only
 NumPy; rerunning model inference requires the datasets, weights, TIAToolbox,
 and a CUDA GPU.
 
+**TIAToolbox 2.x follow-up:** see the [five-cohort results](RESULTS_V2.md)
+and [migration protocol](V2_MIGRATION.md). The detailed
+[MicroNet / CoNSeP audit](V2_MICRONET_CONSEP.md) explains the padding difference
+behind its lower historical baseline. The table below preserves the 1.6
+results; use the 2.x report when discussing the current inference pipeline.
+
 ## Results at a glance
 
 Dice is computed for each image or ROI and then averaged. Scores below are
@@ -29,8 +35,9 @@ MicroNet improved on both tested cohorts. HoVer-Net changed little, and BCSS
 showed no overall multiclass gain under the ROI-wise metric. The two CoNSeP
 rows share the same 14 images, as do the two Kumar rows; MicroNet/Kumar is a
 cross-dataset evaluation. These are small exploratory cohorts, and the
-baseline scores do not fully reproduce TIAToolbox's published reference
-scores. See [RESULTS.md](RESULTS.md) for per-class BCSS results, secondary
+historical baseline scores do not fully reproduce TIAToolbox's published
+reference scores. The MicroNet/CoNSeP discrepancy is investigated in the
+2.x follow-up above. See [RESULTS.md](RESULTS.md) for per-class BCSS results, secondary
 AJI/PQ and multilabel comparisons, and interpretation limits.
 
 ## Comparison protocol
@@ -51,11 +58,80 @@ AJI/PQ and multilabel comparisons, and interpretation limits.
   remain in the comparison, including losses. BCSS multilabel results are a
   separate diagnostic because their masks may overlap.
 
+## TIAToolbox 2.x migration check
+
+All five checkpoint/cohort combinations have dedicated 2.1.3 outputs. The
+[combined report](RESULTS_V2.md) includes comparisons with the historical
+results, nucleus AJI/PQ, all BCSS classes and multilabel diagnostics. The
+[migration guide](V2_MIGRATION.md) gives reproduction commands for all cohorts.
+Regenerate the full table with NumPy only:
+
+```bash
+python -m rankseg_benchmark.tiatoolbox.table_v2 --output rankseg_benchmark/tiatoolbox/RESULTS_V2.md
+```
+
+`micronet_consep_v2.py` reruns the 14 CoNSeP test images with **TIAToolbox
+2.1.3** and its public `MultiTaskSegmentor` engine. It uses the same registered
+MicroNet checkpoint and input files as the 1.6 experiment. The new environment,
+probabilities, official instance maps, and scores are kept separately under
+`artifacts/tiatoolbox_v2/`.
+
+The [completed report](V2_MICRONET_CONSEP.md) includes all 14 per-image
+results, secondary multiclass decoding, and the old/new baseline audit.
+Rebuild its main table from tracked evidence without inference:
+
+```bash
+python -m rankseg_benchmark.tiatoolbox.micronet_consep_v2 report --from-evidence
+```
+
+This command needs NumPy, SciPy and Pillow, but no TIAToolbox, RankSEG or GPU.
+
+Create an isolated Python 3.12 environment and install
+`environments/tiatoolbox-v2.txt`. For development, an editable installation of
+the local RankSEG checkout can replace the PyPI installation; the runner
+verifies the decoder source hash. Then run from the repository root:
+
+```bash
+python -m rankseg_benchmark.tiatoolbox.micronet_consep_v2 infer --limit 1
+python -m rankseg_benchmark.tiatoolbox.micronet_consep_v2 evaluate --limit 1
+python -m rankseg_benchmark.tiatoolbox.micronet_consep_v2 infer
+python -m rankseg_benchmark.tiatoolbox.micronet_consep_v2 evaluate
+python -m rankseg_benchmark.tiatoolbox.micronet_consep_v2 report
+```
+
+The engine uses the registered 252×252 input/output patches and 150-pixel
+stride, with full-image coverage and no tissue mask. PNGs receive `mpp=0.25`
+metadata to match the registered resolution and keep inference at their
+original pixel scale. No physical rescaling or probability normalization is
+introduced. Torch compilation is disabled, as in the previous run.
+
+For every image, the evaluator checks that direct MicroNet postprocessing of
+the saved probabilities exactly reproduces the engine's instance array, and
+that passing the argmax binary mask through the adapter gives that same
+array. Both RankSEG variants use this adapter with the unchanged official
+postprocessor. Primary Dice uses `tiatoolbox.utils.metrics.dice` on instance
+foreground, evaluated per image; all 14 ground-truth masks are nonempty.
+AJI/PQ use the existing instance scorer. An `audit` command accepts the
+HoVer-Net authors' `metrics/stats_utils.py` through `--reference-scorer` and
+compares all three metrics against that implementation.
+
+Migration diagnostics compare the new and old probability maps and replay
+the 1.6 baseline. In 2.1.3, `MicroNet.postproc` returns the connected-component
+map before hole filling in `predictions`, while its contour information uses
+the filled map. The primary evaluation follows the returned instance array.
+Hole-filled scores are recorded separately to measure this version change.
+The `micronet_padding_audit` module additionally replays both black and white
+edge padding with the same model. This optional diagnostic needs the old and
+new saved probabilities; the primary 2.x evaluation does not require a 1.6
+installation or its inference artifacts.
+
 ## Layout
 
 | File | Purpose |
 | --- | --- |
 | `micronet_consep.py`, `micronet_kumar.py` | MicroNet tile inference, binary decoding, official instance postprocessing, per-image Dice; Kumar also scores AJI/PQ as a secondary check. |
+| `micronet_consep_v2.py`, `micronet_padding_audit.py` | TIAToolbox 2.1.3 MicroNet inference, paired evaluation, scorer audit, and controlled padding replay. |
+| `cohorts_v2.py`, `table_v2.py` | Remaining 2.1.3 cohorts, optional padding replay, and the combined table from per-image CSVs. |
 | `hovernet_consep.py`, `hovernet_kumar.py` | HoVer-Net tile inference, nucleus decoding with unchanged HV/type maps, official instance postprocessing, per-image Dice. |
 | `bcss.py` | Download BCSS test ROIs, run official semantic model, score one five-class mask per ROI. |
 | `download_weights.py` | Fetch the four TIACentre checkpoints into ignored `artifacts/` paths and verify SHA-256. |
@@ -64,6 +140,7 @@ AJI/PQ and multilabel comparisons, and interpretation limits.
 | `table.py` | Recompute means, changes, win counts, and seeded paired bootstrap intervals from case-level CSVs; generate `RESULTS.md`. |
 | `evidence/*.csv` | Small, tracked per-case scores. No images, model weights, or probability maps. |
 | `metadata/kumar_test_index.json` | Frozen public index of the 14 Kumar test TIFF/MAT pairs used here. |
+| `metadata/*_v2.json` | 2.1.3 runtime, input hashes, checks and migration diagnostics. |
 
 The original images, annotations, checkpoints, probability maps, inference
 outputs, and full run JSONs remain under the repository's ignored `artifacts/`

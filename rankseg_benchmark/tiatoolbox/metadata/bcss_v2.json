@@ -1,0 +1,1999 @@
+{
+  "run_date": "2026-10-26",
+  "inference": {
+    "runtime": {
+      "packages": {
+        "tiatoolbox": "2.1.3",
+        "torch": "2.11.0",
+        "torchvision": "0.26.0",
+        "numpy": "2.4.3",
+        "scipy": "1.17.0",
+        "scikit-image": "0.26.0",
+        "pillow": "12.1.1",
+        "dask": "2026.7.0",
+        "zarr": "3.1.6",
+        "rankseg": "0.0.8",
+        "triton": "3.6.0"
+      },
+      "gpu": "NVIDIA GeForce RTX 3090",
+      "cuda": "13.0",
+      "tiatoolbox_source_sha256": {
+        "models/architecture/micronet.py": "9e241e479f5405fcc7e3092acef7a10257fad2d32813f91c1d1533ea254f3360",
+        "models/engine/multi_task_segmentor.py": "15747635dfa643681227d3ab24f89c8f5a5700387166540c0c177f92f0433c45",
+        "models/engine/engine_abc.py": "44d671c6ada54eb56a731def13e948289b639d6d53606eb826aec5ce42de42dd",
+        "models/dataset/dataset_abc.py": "73a4ae6488045d9aa85c4737e87ba60789c98a9369c4fbe5b5b1c83b4eda72cd",
+        "data/pretrained_model.yaml": "71258a85a955f77b34e64fb42fc98397dfb754d374ab758ac4d6b5ff700ac793",
+        "models/architecture/hovernet.py": "4c004c793069824db12f8d880e4773b9034728c3235328cdaa46897a8a90fa0f",
+        "models/architecture/unet.py": "5b7b166955d9f8508b49c6fff382801d58a306b064fad0d11fbec621fc5f3179",
+        "models/engine/semantic_segmentor.py": "5a4c136eb3cc7f8ec59ceb61c7e74b607a6e926002928c9e1a9adf9f5163f9ec",
+        "models/engine/patch_predictor.py": "e15457c30d2880dffd18f87376f4a1880d5451d118e44f19ab6fae6b18260978"
+      }
+    },
+    "inputs": [
+      {
+        "id": "TCGA-E2-A14N-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A14N-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A14N-DX1.mask.png",
+        "image_sha256": "6dfeeabfdda5ee8c21293d6c3e58fa7b5e84b8325054a84066a0daaafdb95630",
+        "label_sha256": "3bc24af98a6b1b2bf775dc237409f1f99bedf8754d77edafc898174151ad3448",
+        "shape": [
+          5162,
+          8026
+        ]
+      },
+      {
+        "id": "TCGA-E2-A14R-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A14R-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A14R-DX1.mask.png",
+        "image_sha256": "6b3f0ce35a0c89c43248a1bddc6fb14f43da029bb2903a5ca2089c269cebd6cc",
+        "label_sha256": "8b99f18b7436f304fa0a0cdbb8990480a35644a2227c02853273ab80a84d2cd4",
+        "shape": [
+          2629,
+          2673
+        ]
+      },
+      {
+        "id": "TCGA-E2-A14X-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A14X-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A14X-DX1.mask.png",
+        "image_sha256": "78aa220077039cdfde6f1d2dbc332f593639d2145f378dfd4c4adb95cfb8b759",
+        "label_sha256": "b2e8d940b2064542b8d6cd3ac0221d81a8882fc3f52e67b4efd6402865376db4",
+        "shape": [
+          5688,
+          4922
+        ]
+      },
+      {
+        "id": "TCGA-E2-A150-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A150-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A150-DX1.mask.png",
+        "image_sha256": "dedb8582aef4db8378ba8bc51fda39ab8158da44f68b90631f4415917d7f821f",
+        "label_sha256": "5b5194b014f133e92890f1cd710c1f91cd6b864dbb5335e2ee6ec32c6734eb48",
+        "shape": [
+          3794,
+          4851
+        ]
+      },
+      {
+        "id": "TCGA-E2-A158-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A158-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A158-DX1.mask.png",
+        "image_sha256": "8b557166b08dfe53fc71bbf3d97246812b5c3c2e79b5ff8890d5d7c3a4729412",
+        "label_sha256": "ee9c00466a507eda31870a0a59b0cd6d9bc894b01473702d91371bd395cbfa7c",
+        "shape": [
+          2554,
+          3775
+        ]
+      },
+      {
+        "id": "TCGA-E2-A159-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A159-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A159-DX1.mask.png",
+        "image_sha256": "b48106bcf9e7aa50dd633a175ff688f83ad3c77a07202d44ad444e0339da3408",
+        "label_sha256": "0f6b2157bb3f0eec63c5e702d1e2809638e10c00ce44fdbc73ab5a30b277f587",
+        "shape": [
+          4347,
+          7553
+        ]
+      },
+      {
+        "id": "TCGA-E2-A1AZ-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1AZ-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1AZ-DX1.mask.png",
+        "image_sha256": "f9c72da6781f1f23d4451eebb2deedb03daebed46fc0c2ca4c3a10676f7feecb",
+        "label_sha256": "4833b06fd1aba90ddc75334f99c17aad2813296ceb838ec17883a4bb34528209",
+        "shape": [
+          3656,
+          3251
+        ]
+      },
+      {
+        "id": "TCGA-E2-A1B6-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1B6-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1B6-DX1.mask.png",
+        "image_sha256": "d1db5d5d7d290193fdae5ebb470602f3aed5afddd62c0e2f0eaa708968e385c5",
+        "label_sha256": "bc92d814f5b6ae6ee6a07fa188e98a23aecf9b24436e4215df75b4f29b01568f",
+        "shape": [
+          6180,
+          6056
+        ]
+      },
+      {
+        "id": "TCGA-E2-A1L7-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1L7-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1L7-DX1.mask.png",
+        "image_sha256": "66adf1edb4d33976d808f8a79e3880c658c8d4d9e9cad63da9a257abfadb0452",
+        "label_sha256": "6f0c6b49d8d3f3cd1f57c0f729fcd1de7d91b8c6b2dc9adcd03754902e98a3b5",
+        "shape": [
+          5510,
+          7448
+        ]
+      },
+      {
+        "id": "TCGA-E2-A1LH-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LH-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LH-DX1.mask.png",
+        "image_sha256": "0bbc89309cd76cce2f8f16c4b25ef93c70aa9e18a3e2e6729974574d1d71d898",
+        "label_sha256": "36e625f5837e57a3a8a1569ea66b3b8eaa7ebd7a733cf7231ffbc8cdd31e3e18",
+        "shape": [
+          3776,
+          3909
+        ]
+      },
+      {
+        "id": "TCGA-E2-A1LI-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LI-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LI-DX1.mask.png",
+        "image_sha256": "dc7091b4d9ff4b7192d24b8675535bee525e2348d1b1b63cb015f7c834d06f19",
+        "label_sha256": "4aae4e1e4a04bf40ed7564e8c5b00d49aca2ac735bb78df5d17dd752601dadd9",
+        "shape": [
+          6498,
+          7589
+        ]
+      },
+      {
+        "id": "TCGA-E2-A1LK-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LK-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LK-DX1.mask.png",
+        "image_sha256": "9e24cdd54e7c219844c1ebb7fb13921d73d741783456dcc1ca81e0042467baf9",
+        "label_sha256": "4b7eba11d52275110496badffe2622eda64f456faf76cf41f5540f39565bf0f0",
+        "shape": [
+          7843,
+          6004
+        ]
+      },
+      {
+        "id": "TCGA-E2-A1LL-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LL-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LL-DX1.mask.png",
+        "image_sha256": "22fbd87c214a392fba813c3f1c8fb89e21162cc9505ab45c4e82d073151a92f8",
+        "label_sha256": "9dc16b6e1a788f078501b7135c7d615d692fad561a50f543575d670a7073ed37",
+        "shape": [
+          3973,
+          3858
+        ]
+      },
+      {
+        "id": "TCGA-E2-A1LS-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LS-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A1LS-DX1.mask.png",
+        "image_sha256": "3f285a34ac5dafafc4d1f426dde4e196e191cd8179577bf2357fd7d1ae8b4579",
+        "label_sha256": "0197377c1f084f6a24f65206798dbc5ef3d1e0b0253fe88b01de89a9751bfaae",
+        "shape": [
+          2811,
+          3154
+        ]
+      },
+      {
+        "id": "TCGA-E2-A573-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A573-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A573-DX1.mask.png",
+        "image_sha256": "d1c46bfc50291ff97d764961bb8015170aaa145674e45db2799f74d7d049fd3e",
+        "label_sha256": "4368a7c77c7d73217e1b9dbda35af4834a1dd09c0cbdba559ff1ca9e1c58360a",
+        "shape": [
+          3143,
+          4385
+        ]
+      },
+      {
+        "id": "TCGA-E2-A574-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A574-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-E2-A574-DX1.mask.png",
+        "image_sha256": "d97c47d4dce35626e2604cfca031efa1da1de42c240499ee409ccdd3c9fb2163",
+        "label_sha256": "c2059c675a2a9fc3652d32186173072abe9e7ab395850b0d77304d077fbb918d",
+        "shape": [
+          5403,
+          5129
+        ]
+      },
+      {
+        "id": "TCGA-EW-A1OV-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1OV-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1OV-DX1.mask.png",
+        "image_sha256": "80a202fd6227c4dd11256f71bd182ebeb98ab462181eebda31ee7e2c7b3a6dce",
+        "label_sha256": "c10dbb79ec6abdc08dc4c66a8fbf32604dca3d012091981b4af2cb5cb091b187",
+        "shape": [
+          10678,
+          7519
+        ]
+      },
+      {
+        "id": "TCGA-EW-A1OW-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1OW-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1OW-DX1.mask.png",
+        "image_sha256": "56dd417c228a735534acb47e4877525166a3162653cd9c712553f20341e42609",
+        "label_sha256": "4dfd0e21beb319605486d734d0cd133c5ceb4845aac0caefcfe8a3177fab246d",
+        "shape": [
+          8799,
+          8189
+        ]
+      },
+      {
+        "id": "TCGA-EW-A1P1-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1P1-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1P1-DX1.mask.png",
+        "image_sha256": "30a8912394765f3945246784d85e8e3f97763bf408519b2d846f0ef603108460",
+        "label_sha256": "7ad43f81d376b3f361c89016c90728a5b0466c5e8e124f7fdb326b28b48e289d",
+        "shape": [
+          4689,
+          5240
+        ]
+      },
+      {
+        "id": "TCGA-EW-A1P4-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1P4-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1P4-DX1.mask.png",
+        "image_sha256": "668e469d6ace7ca7339bf6b49e369bc2aab2b085798674fa2c93fd26a8f2fe99",
+        "label_sha256": "a41c925e61a09545a6f9343eb4b6311c25938c7bce9776b5513e53e5e3f3dde7",
+        "shape": [
+          4168,
+          5065
+        ]
+      },
+      {
+        "id": "TCGA-EW-A1P7-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1P7-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1P7-DX1.mask.png",
+        "image_sha256": "80e178a22dcfb5c252a8f768752ea95b22d8b4678bea8669f1054b1a2b74f3c9",
+        "label_sha256": "9f5a7fee9ff89747a3277e4b01add27ce5ed3d38613aa85a44949dd99c0eb058",
+        "shape": [
+          4959,
+          3560
+        ]
+      },
+      {
+        "id": "TCGA-EW-A1P8-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1P8-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1P8-DX1.mask.png",
+        "image_sha256": "fc0088f3999e7d2c171d40124cce5d225cacd0189aaecc9f9eec5cc1ee2087fd",
+        "label_sha256": "6f8204486aace7893d2ab9cdf40e4bc941aaaef48e8e9ca17b82ce7e93eebe5f",
+        "shape": [
+          4706,
+          4593
+        ]
+      },
+      {
+        "id": "TCGA-EW-A1PB-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1PB-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1PB-DX1.mask.png",
+        "image_sha256": "7b3599094330d57ceec5748b21221565d4254597888fcfbba8b28bff5dc92267",
+        "label_sha256": "15902017451adc02f6eaf8feec76b8ab42e87d76fccfb3bccabc1af9ed12464c",
+        "shape": [
+          4778,
+          4171
+        ]
+      },
+      {
+        "id": "TCGA-EW-A1PH-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1PH-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A1PH-DX1.mask.png",
+        "image_sha256": "ec68f087bb4baf4335c6d469d8f37421979931015a6a1f88d17d46ebc4325ea6",
+        "label_sha256": "6e7a96ced8314aa8df126deae9d0a18b92ef6c6557852a2e62e85e41741bc5aa",
+        "shape": [
+          6296,
+          7016
+        ]
+      },
+      {
+        "id": "TCGA-EW-A3U0-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A3U0-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A3U0-DX1.mask.png",
+        "image_sha256": "97bead7a1d5e820ac7fd63bc6ea53780a1258afa02ea67a55ac96eacf2d263bc",
+        "label_sha256": "9a086002c44fbe1b767513b3d23e1486b14cf56865bd4b9cca04d5a94c7e43ee",
+        "shape": [
+          2476,
+          2134
+        ]
+      },
+      {
+        "id": "TCGA-EW-A6SB-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A6SB-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-EW-A6SB-DX1.mask.png",
+        "image_sha256": "acd88ee7ebc6fbc65461fe34210a513b13524bea3aa4a58d5a69b3fd5ba44353",
+        "label_sha256": "46fda68d68f008a5043333f5eddb5bdaf50e07890de3a0e7b89a263513020ad1",
+        "shape": [
+          6770,
+          5942
+        ]
+      },
+      {
+        "id": "TCGA-GM-A2DB-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DB-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DB-DX1.mask.png",
+        "image_sha256": "1ed9498ab43df79b00a52237d253cbad4c91ce339e6a4fd13b4a55f93a7058fa",
+        "label_sha256": "768324757cca4382d13579916ed689ae16b52298e203842cfe941df30d2e88ca",
+        "shape": [
+          7770,
+          9339
+        ]
+      },
+      {
+        "id": "TCGA-GM-A2DD-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DD-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DD-DX1.mask.png",
+        "image_sha256": "c5582bedea309c8d4f70e6f922c46451cd70f7971511252c64ef342053a37f14",
+        "label_sha256": "4765e3a145271a0de56d247a566f83f12e673b47b73b2ff76e87b2b415c583e3",
+        "shape": [
+          4337,
+          8316
+        ]
+      },
+      {
+        "id": "TCGA-GM-A2DF-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DF-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DF-DX1.mask.png",
+        "image_sha256": "17d91b63af941f591ab8db72ca379ab69566b8d09c55ea3723b9fe27986eacd0",
+        "label_sha256": "88bd273d478b651ba9335c0963006fecbb3dbb3b1eb52dadad3d4cf83a07f915",
+        "shape": [
+          4755,
+          4861
+        ]
+      },
+      {
+        "id": "TCGA-GM-A2DH-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DH-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DH-DX1.mask.png",
+        "image_sha256": "d7310ab7efa7848ee4586cf5079a4214c6f2a4c846e216ae0974fb0bc7616d38",
+        "label_sha256": "c92dfe8ca6c7983364908526a12a962cb0a55b5c2e8f0f7ac91bd42217b311c4",
+        "shape": [
+          4267,
+          5564
+        ]
+      },
+      {
+        "id": "TCGA-GM-A2DI-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DI-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A2DI-DX1.mask.png",
+        "image_sha256": "caf28cd5efc7f14725f85cb77f7a350b4e37f361c71f14631f0376316a57f850",
+        "label_sha256": "1b843cba6a37f5f69aee271ecafa76d01362dafc0d0297a15f0c7e7b1fc18dbd",
+        "shape": [
+          1149,
+          2831
+        ]
+      },
+      {
+        "id": "TCGA-GM-A3XL-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A3XL-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-GM-A3XL-DX1.mask.png",
+        "image_sha256": "650ed9931bdd45a37b9ae58489c641820bffa294cb5475ce3d817b3ad1e4dc22",
+        "label_sha256": "a4e9108c3eee29faff1c47feb7850a9dae86ade88be934bca6cba919475c82e3",
+        "shape": [
+          5084,
+          6911
+        ]
+      },
+      {
+        "id": "TCGA-LL-A441-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-LL-A441-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-LL-A441-DX1.mask.png",
+        "image_sha256": "565f117cfde53d566c5648cf6828147e28973af668b838e156894e455d580a6b",
+        "label_sha256": "a4caaf715571e3ccb950c5eff54f83a1329494620ff8b6ea715c83371bded400",
+        "shape": [
+          3965,
+          4123
+        ]
+      },
+      {
+        "id": "TCGA-LL-A5YO-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-LL-A5YO-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-LL-A5YO-DX1.mask.png",
+        "image_sha256": "f744e1906f52fe6c1edb39008e4a0c7035bfe5ce512c7a99e8f97618054b177b",
+        "label_sha256": "0a76c646a552248b2f68ed513eee81a7ceccbf170191655ea744acbba36616c9",
+        "shape": [
+          2566,
+          3562
+        ]
+      },
+      {
+        "id": "TCGA-LL-A73Y-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-LL-A73Y-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-LL-A73Y-DX1.mask.png",
+        "image_sha256": "b4d97551b3624df99474893f2bce1c0174eff2e10dc1158c90fbcadc834143f9",
+        "label_sha256": "5e0046df2a79f976ed049ca953532ace32592c76c5d907a52b37cb486cbedb60",
+        "shape": [
+          2153,
+          2472
+        ]
+      },
+      {
+        "id": "TCGA-LL-A740-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-LL-A740-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-LL-A740-DX1.mask.png",
+        "image_sha256": "0b9e002ebf17aa386872eb82ce828e9362ef3a2bcb878abfabd1501a4f1587ba",
+        "label_sha256": "abedfb4aa685c3b0334c3b8a0d452e13651763e48b61e41dc4edd12aa99af6c4",
+        "shape": [
+          3382,
+          3392
+        ]
+      },
+      {
+        "id": "TCGA-OL-A5D6-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A5D6-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A5D6-DX1.mask.png",
+        "image_sha256": "8335f25feb3ec32b852511f94ca0715b039f64900f0d7148de2db58b6f99c0e5",
+        "label_sha256": "a523c51fda0250900289705ff35913e72bca64066b8751a513681c43d2a91bfc",
+        "shape": [
+          2962,
+          2874
+        ]
+      },
+      {
+        "id": "TCGA-OL-A5D7-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A5D7-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A5D7-DX1.mask.png",
+        "image_sha256": "5b2888845ca6bbaec27cb97c57f8c566257a8e9ae8ae5aa27814f45a0d2f9c99",
+        "label_sha256": "607895062c27ced123e237759a12014a2a5540491b656133b57914c56f4a5524",
+        "shape": [
+          7543,
+          6683
+        ]
+      },
+      {
+        "id": "TCGA-OL-A5RW-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A5RW-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A5RW-DX1.mask.png",
+        "image_sha256": "e91133dff5aa8df6133e1adf6b07ad853c2a79d7b2e3377c8b5f3a7d8ac6cb5f",
+        "label_sha256": "2c9f354543efb859894429dd9ad8e60dad6a446990eccf8afd8c9a4b75091a5b",
+        "shape": [
+          1036,
+          1222
+        ]
+      },
+      {
+        "id": "TCGA-OL-A66I-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A66I-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A66I-DX1.mask.png",
+        "image_sha256": "bdb4458308194636a0d2b134e3a9001c75409f7761fdcae2067c247b5aabac1d",
+        "label_sha256": "b3361c261e8886895e3502feb628d30d72a83893b500f14ca1ce9bf2a1cfdabe",
+        "shape": [
+          3082,
+          3816
+        ]
+      },
+      {
+        "id": "TCGA-OL-A66P-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A66P-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A66P-DX1.mask.png",
+        "image_sha256": "4509e6955f0a9c8a38f5e62e3741df418a19df0834fbd679e46ead1e266f8650",
+        "label_sha256": "fa3265a5abc6f7204b015f2fce3d70785c7ce5b04ce0c1c4b157640f86fa3fb8",
+        "shape": [
+          5174,
+          6487
+        ]
+      },
+      {
+        "id": "TCGA-OL-A6VO-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A6VO-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A6VO-DX1.mask.png",
+        "image_sha256": "ea3da75c28083b5faba835b13f25e394715a4ca95310d4e11ba79cb688b55983",
+        "label_sha256": "edb622157598f37a48ca31f03982f8d4f5b5aea8fbab84d942c1416e99d95dc0",
+        "shape": [
+          3594,
+          3491
+        ]
+      },
+      {
+        "id": "TCGA-OL-A97C-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A97C-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-OL-A97C-DX1.mask.png",
+        "image_sha256": "d5f87915e0d128979e9e1580f6fcb8ac1d16dd0dd90ae69e6533212817546c9a",
+        "label_sha256": "7c43a1f013e774443c52c5410aa12d77bd4eeb4a4a921a2ef6ed826bdd332d98",
+        "shape": [
+          5764,
+          5416
+        ]
+      },
+      {
+        "id": "TCGA-S3-AA10-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-S3-AA10-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-S3-AA10-DX1.mask.png",
+        "image_sha256": "15f01155380b61089a17a73f91303fc5cf7f95e50f40894f855b115ddc0c6aaa",
+        "label_sha256": "6e163a666c2d1318c9027361e854022e2031be1f93ba242082c9cbd7370209de",
+        "shape": [
+          3908,
+          3892
+        ]
+      },
+      {
+        "id": "TCGA-S3-AA15-DX1",
+        "image": "artifacts/tiatoolbox_bcss/data/TCGA-S3-AA15-DX1.jpg",
+        "label": "artifacts/tiatoolbox_bcss/data/TCGA-S3-AA15-DX1.mask.png",
+        "image_sha256": "19ecb41966735f63afab9c3988d3aa4d350235349c86e413bf250e195174b035",
+        "label_sha256": "82aac01fe5d9f1339039d34e2f45ddb9d22b59f7ff4fc10a55759ac7fc3bbbc5",
+        "shape": [
+          2779,
+          2237
+        ]
+      }
+    ],
+    "model": "fcn_resnet50_unet-bcss",
+    "checkpoint_sha256": "92d6c78e00ca18debfa1cfbb7c976facdce05fb9c0293117fbf4229e94a1aabf",
+    "batch_size": 2,
+    "patch_mode": false,
+    "auto_get_mask": false,
+    "mpp": 0.25,
+    "torch_compile_mode": "disable",
+    "num_workers": 0,
+    "ioconfig": "registered defaults"
+  },
+  "decoder": {
+    "manifest_sha256": "befb29c060994e7c1ab584ca44eba338b4d185ca17f188d987a6b8a53f9cfc18",
+    "rankseg": {
+      "rankseg_version": "0.0.8",
+      "git_revision": "361ccc0aff14e637a13bb0f70e15eb606b083157",
+      "source_sha256": "f0ff60cff120f8c6e1b663bd29b42351a62df735f23335a06852ced4e66b3262",
+      "files_hashed": [
+        "functional.py",
+        "_rankseg_algo.py",
+        "_screening.py",
+        "_screening_cuda.py"
+      ]
+    },
+    "metric": "dice",
+    "solver": "RMA",
+    "safe_screening": true,
+    "pruning_prob": 0.5,
+    "smooth": 0.0
+  },
+  "evidence_csv_sha256": "788b10ebfa0f426bcceffe549001712dedbf0c4f1d320ad4690a792faf62d931",
+  "official_engine_and_adapter_exact_match_cases": [
+    "TCGA-E2-A14N-DX1",
+    "TCGA-E2-A14R-DX1",
+    "TCGA-E2-A14X-DX1",
+    "TCGA-E2-A150-DX1",
+    "TCGA-E2-A158-DX1",
+    "TCGA-E2-A159-DX1",
+    "TCGA-E2-A1AZ-DX1",
+    "TCGA-E2-A1B6-DX1",
+    "TCGA-E2-A1L7-DX1",
+    "TCGA-E2-A1LH-DX1",
+    "TCGA-E2-A1LI-DX1",
+    "TCGA-E2-A1LK-DX1",
+    "TCGA-E2-A1LL-DX1",
+    "TCGA-E2-A1LS-DX1",
+    "TCGA-E2-A573-DX1",
+    "TCGA-E2-A574-DX1",
+    "TCGA-EW-A1OV-DX1",
+    "TCGA-EW-A1OW-DX1",
+    "TCGA-EW-A1P1-DX1",
+    "TCGA-EW-A1P4-DX1",
+    "TCGA-EW-A1P7-DX1",
+    "TCGA-EW-A1P8-DX1",
+    "TCGA-EW-A1PB-DX1",
+    "TCGA-EW-A1PH-DX1",
+    "TCGA-EW-A3U0-DX1",
+    "TCGA-EW-A6SB-DX1",
+    "TCGA-GM-A2DB-DX1",
+    "TCGA-GM-A2DD-DX1",
+    "TCGA-GM-A2DF-DX1",
+    "TCGA-GM-A2DH-DX1",
+    "TCGA-GM-A2DI-DX1",
+    "TCGA-GM-A3XL-DX1",
+    "TCGA-LL-A441-DX1",
+    "TCGA-LL-A5YO-DX1",
+    "TCGA-LL-A73Y-DX1",
+    "TCGA-LL-A740-DX1",
+    "TCGA-OL-A5D6-DX1",
+    "TCGA-OL-A5D7-DX1",
+    "TCGA-OL-A5RW-DX1",
+    "TCGA-OL-A66I-DX1",
+    "TCGA-OL-A66P-DX1",
+    "TCGA-OL-A6VO-DX1",
+    "TCGA-OL-A97C-DX1",
+    "TCGA-S3-AA10-DX1",
+    "TCGA-S3-AA15-DX1"
+  ],
+  "migration_diagnostics": [
+    {
+      "id": "TCGA-E2-A14N-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.6820876863990295,
+        "dice_tumor": 0.9034637124453886,
+        "dice_stroma": 0.5066442982765897,
+        "dice_inflammatory": 0.83698473837027,
+        "dice_necrosis": 0.8761099429026461,
+        "dice_other": 0.28723574000025287
+      },
+      "probability_mean_absolute_difference": 0.014165918342769146,
+      "raw_disagreement_pixels": 1296866
+    },
+    {
+      "id": "TCGA-E2-A14R-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.3911442280199228,
+        "dice_tumor": 0.8694783123434542,
+        "dice_stroma": 0.562026628928923,
+        "dice_inflammatory": 0.5242161988272368,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.0
+      },
+      "probability_mean_absolute_difference": 0.02339313179254532,
+      "raw_disagreement_pixels": 470861
+    },
+    {
+      "id": "TCGA-E2-A14X-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8499928869018378,
+        "dice_tumor": 0.9528067705394214,
+        "dice_stroma": 0.8549158827861713,
+        "dice_inflammatory": 0.839314527502806,
+        "dice_necrosis": 0.9221189134400626,
+        "dice_other": 0.6808083402407276
+      },
+      "probability_mean_absolute_difference": 0.011438243091106415,
+      "raw_disagreement_pixels": 708613
+    },
+    {
+      "id": "TCGA-E2-A150-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.6124139735585235,
+        "dice_tumor": 0.8514342594466111,
+        "dice_stroma": 0.7603124150741464,
+        "dice_inflammatory": 0.6973260211289902,
+        "dice_necrosis": 0.7399127203139013,
+        "dice_other": 0.013084451828967522
+      },
+      "probability_mean_absolute_difference": 0.026661032810807228,
+      "raw_disagreement_pixels": 1154497
+    },
+    {
+      "id": "TCGA-E2-A158-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5374616661646487,
+        "dice_tumor": 0.778794359154946,
+        "dice_stroma": 0.8398671125026674,
+        "dice_inflammatory": 0.719804146197103,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.34884271296852765
+      },
+      "probability_mean_absolute_difference": 0.026539279147982597,
+      "raw_disagreement_pixels": 689750
+    },
+    {
+      "id": "TCGA-E2-A159-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5909296531406827,
+        "dice_tumor": 0.8584595349623588,
+        "dice_stroma": 0.6896409616236973,
+        "dice_inflammatory": 0.5941275933841711,
+        "dice_necrosis": 0.7987396161558292,
+        "dice_other": 0.013680559577356937
+      },
+      "probability_mean_absolute_difference": 0.02131003327667713,
+      "raw_disagreement_pixels": 2183103
+    },
+    {
+      "id": "TCGA-E2-A1AZ-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5504131639250651,
+        "dice_tumor": 0.8727201876987555,
+        "dice_stroma": 0.8776036034202127,
+        "dice_inflammatory": 0.8621124585272946,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.13962956997906265
+      },
+      "probability_mean_absolute_difference": 0.02576880156993866,
+      "raw_disagreement_pixels": 720503
+    },
+    {
+      "id": "TCGA-E2-A1B6-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.6949525972180212,
+        "dice_tumor": 0.9063122530007084,
+        "dice_stroma": 0.7466217498741399,
+        "dice_inflammatory": 0.8334092235469162,
+        "dice_necrosis": 0.8090846986644362,
+        "dice_other": 0.17933506100390512
+      },
+      "probability_mean_absolute_difference": 0.018316106870770454,
+      "raw_disagreement_pixels": 1661576
+    },
+    {
+      "id": "TCGA-E2-A1L7-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5453379915395391,
+        "dice_tumor": 0.8748775735271183,
+        "dice_stroma": 0.9076491331799581,
+        "dice_inflammatory": 0.7007158292086039,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.24344742178201556
+      },
+      "probability_mean_absolute_difference": 0.016332315281033516,
+      "raw_disagreement_pixels": 1497357
+    },
+    {
+      "id": "TCGA-E2-A1LH-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5480080066176818,
+        "dice_tumor": 0.9142257943422869,
+        "dice_stroma": 0.7967800193386041,
+        "dice_inflammatory": 0.83968476241634,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.18934945699117792
+      },
+      "probability_mean_absolute_difference": 0.02127065323293209,
+      "raw_disagreement_pixels": 801307
+    },
+    {
+      "id": "TCGA-E2-A1LI-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.785770243668839,
+        "dice_tumor": 0.854648469465415,
+        "dice_stroma": 0.7433645755499515,
+        "dice_inflammatory": 0.7007027243006549,
+        "dice_necrosis": 0.8768030149325903,
+        "dice_other": 0.7533324340955837
+      },
+      "probability_mean_absolute_difference": 0.02113327570259571,
+      "raw_disagreement_pixels": 2566925
+    },
+    {
+      "id": "TCGA-E2-A1LK-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.581841575534077,
+        "dice_tumor": 0.901818277054476,
+        "dice_stroma": 0.8684209733449431,
+        "dice_inflammatory": 0.7379095429637343,
+        "dice_necrosis": 0.39815356480958025,
+        "dice_other": 0.002905519497651839
+      },
+      "probability_mean_absolute_difference": 0.01673702336847782,
+      "raw_disagreement_pixels": 1567817
+    },
+    {
+      "id": "TCGA-E2-A1LL-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.4027706448521857,
+        "dice_tumor": 0.6653617441790389,
+        "dice_stroma": 0.8503988886760965,
+        "dice_inflammatory": 0.35866677695425436,
+        "dice_necrosis": 0.012793535695358588,
+        "dice_other": 0.1266322787561801
+      },
+      "probability_mean_absolute_difference": 0.030012648552656174,
+      "raw_disagreement_pixels": 1186667
+    },
+    {
+      "id": "TCGA-E2-A1LS-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5190237277612832,
+        "dice_tumor": 0.8966453222079565,
+        "dice_stroma": 0.8448243891443197,
+        "dice_inflammatory": 0.8074656414622132,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.046183285991927045
+      },
+      "probability_mean_absolute_difference": 0.022481350228190422,
+      "raw_disagreement_pixels": 469481
+    },
+    {
+      "id": "TCGA-E2-A573-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5371583085729894,
+        "dice_tumor": 0.8766578586284459,
+        "dice_stroma": 0.8243807400978544,
+        "dice_inflammatory": 0.7484472810874669,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.23630566305118003
+      },
+      "probability_mean_absolute_difference": 0.021327665075659752,
+      "raw_disagreement_pixels": 747709
+    },
+    {
+      "id": "TCGA-E2-A574-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7391534702298345,
+        "dice_tumor": 0.9164025277208071,
+        "dice_stroma": 0.7024369559102976,
+        "dice_inflammatory": 0.8411329381975631,
+        "dice_necrosis": 0.5280330664645412,
+        "dice_other": 0.7077618628559633
+      },
+      "probability_mean_absolute_difference": 0.015066638588905334,
+      "raw_disagreement_pixels": 1019532
+    },
+    {
+      "id": "TCGA-EW-A1OV-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7126175858140232,
+        "dice_tumor": 0.9473672379729295,
+        "dice_stroma": 0.9041871682458574,
+        "dice_inflammatory": 0.8887100391676996,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.8228234836836299
+      },
+      "probability_mean_absolute_difference": 0.01269477792084217,
+      "raw_disagreement_pixels": 2006526
+    },
+    {
+      "id": "TCGA-EW-A1OW-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.6552208643330742,
+        "dice_tumor": 0.9406572373364845,
+        "dice_stroma": 0.8999544260212189,
+        "dice_inflammatory": 0.6137969768111315,
+        "dice_necrosis": 0.7217547934846137,
+        "dice_other": 0.0999408880119223
+      },
+      "probability_mean_absolute_difference": 0.014279531314969063,
+      "raw_disagreement_pixels": 2249027
+    },
+    {
+      "id": "TCGA-EW-A1P1-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.617601922067409,
+        "dice_tumor": 0.8038973953655595,
+        "dice_stroma": 0.8536011952200498,
+        "dice_inflammatory": 0.5080108901433907,
+        "dice_necrosis": 0.5961846763476026,
+        "dice_other": 0.32631545326044276
+      },
+      "probability_mean_absolute_difference": 0.018624737858772278,
+      "raw_disagreement_pixels": 1047926
+    },
+    {
+      "id": "TCGA-EW-A1P4-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5488030779558958,
+        "dice_tumor": 0.9314780228957383,
+        "dice_stroma": 0.8073506246554001,
+        "dice_inflammatory": 0.6283692870544368,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.37681745517390364
+      },
+      "probability_mean_absolute_difference": 0.01929589733481407,
+      "raw_disagreement_pixels": 1226227
+    },
+    {
+      "id": "TCGA-EW-A1P7-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8207779677282044,
+        "dice_tumor": 0.9247230256309549,
+        "dice_stroma": 0.877751721569802,
+        "dice_inflammatory": 0.8129129272444278,
+        "dice_necrosis": 0.7649907422236407,
+        "dice_other": 0.723511421972197
+      },
+      "probability_mean_absolute_difference": 0.01484985463321209,
+      "raw_disagreement_pixels": 519829
+    },
+    {
+      "id": "TCGA-EW-A1P8-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7453315798101956,
+        "dice_tumor": 0.9083929212827692,
+        "dice_stroma": 0.611829318512445,
+        "dice_inflammatory": 0.7223230829905414,
+        "dice_necrosis": 0.7510433654704939,
+        "dice_other": 0.7330692107947282
+      },
+      "probability_mean_absolute_difference": 0.025094669312238693,
+      "raw_disagreement_pixels": 1394560
+    },
+    {
+      "id": "TCGA-EW-A1PB-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5321954419541899,
+        "dice_tumor": 0.8409831387216478,
+        "dice_stroma": 0.7444046317387392,
+        "dice_inflammatory": 0.7968171952812269,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.278772244029336
+      },
+      "probability_mean_absolute_difference": 0.019517621025443077,
+      "raw_disagreement_pixels": 936332
+    },
+    {
+      "id": "TCGA-EW-A1PH-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.6099681390744705,
+        "dice_tumor": 0.7838955482442458,
+        "dice_stroma": 0.7311271512537866,
+        "dice_inflammatory": 0.6949670007353208,
+        "dice_necrosis": 0.6666327537091579,
+        "dice_other": 0.17321824142984085
+      },
+      "probability_mean_absolute_difference": 0.028427021577954292,
+      "raw_disagreement_pixels": 3531257
+    },
+    {
+      "id": "TCGA-EW-A3U0-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.44901557396251535,
+        "dice_tumor": 0.620957195699089,
+        "dice_stroma": 0.7550924854038527,
+        "dice_inflammatory": 0.0,
+        "dice_necrosis": 0.5284167660064198,
+        "dice_other": 0.3406114227032151
+      },
+      "probability_mean_absolute_difference": 0.041969750076532364,
+      "raw_disagreement_pixels": 697597
+    },
+    {
+      "id": "TCGA-EW-A6SB-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.43589408627095605,
+        "dice_tumor": 0.7382964335518755,
+        "dice_stroma": 0.6822874934732759,
+        "dice_inflammatory": 0.429099230977549,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.3297872733520798
+      },
+      "probability_mean_absolute_difference": 0.020304203033447266,
+      "raw_disagreement_pixels": 1496672
+    },
+    {
+      "id": "TCGA-GM-A2DB-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7941449825299024,
+        "dice_tumor": 0.8897068363368331,
+        "dice_stroma": 0.7474097515740948,
+        "dice_inflammatory": 0.7832397805071949,
+        "dice_necrosis": 0.8657205984850765,
+        "dice_other": 0.684647945746313
+      },
+      "probability_mean_absolute_difference": 0.018907830119132996,
+      "raw_disagreement_pixels": 3527753
+    },
+    {
+      "id": "TCGA-GM-A2DD-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7066517159977058,
+        "dice_tumor": 0.8761468093110585,
+        "dice_stroma": 0.9470636969715731,
+        "dice_inflammatory": 0.692090011887239,
+        "dice_necrosis": 0.7059206964317365,
+        "dice_other": 0.3120373653869224
+      },
+      "probability_mean_absolute_difference": 0.015480532310903072,
+      "raw_disagreement_pixels": 1105953
+    },
+    {
+      "id": "TCGA-GM-A2DF-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.6438855843647614,
+        "dice_tumor": 0.786296352292228,
+        "dice_stroma": 0.8650461439309153,
+        "dice_inflammatory": 0.8455064889380524,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.7225789366626113
+      },
+      "probability_mean_absolute_difference": 0.0181846022605896,
+      "raw_disagreement_pixels": 1070395
+    },
+    {
+      "id": "TCGA-GM-A2DH-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5358134414994958,
+        "dice_tumor": 0.918026458806199,
+        "dice_stroma": 0.780712685921222,
+        "dice_inflammatory": 0.7100324613007216,
+        "dice_necrosis": 0.22602234593185125,
+        "dice_other": 0.044273255537485616
+      },
+      "probability_mean_absolute_difference": 0.01780679076910019,
+      "raw_disagreement_pixels": 1065494
+    },
+    {
+      "id": "TCGA-GM-A2DI-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.29285376304281774,
+        "dice_tumor": 0.6206695264986968,
+        "dice_stroma": 0.5489461249540527,
+        "dice_inflammatory": 0.0,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.29465316376133943
+      },
+      "probability_mean_absolute_difference": 0.031185826286673546,
+      "raw_disagreement_pixels": 353025
+    },
+    {
+      "id": "TCGA-GM-A3XL-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7305489923561422,
+        "dice_tumor": 0.9515182706371962,
+        "dice_stroma": 0.670568074098634,
+        "dice_inflammatory": 0.8683533681099772,
+        "dice_necrosis": 0.9139970483700829,
+        "dice_other": 0.24830820056482122
+      },
+      "probability_mean_absolute_difference": 0.01781594194471836,
+      "raw_disagreement_pixels": 1661218
+    },
+    {
+      "id": "TCGA-LL-A441-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.46374755150396696,
+        "dice_tumor": 0.8330779213072967,
+        "dice_stroma": 0.5829741077913292,
+        "dice_inflammatory": 0.9018614326097392,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.0008242958114700147
+      },
+      "probability_mean_absolute_difference": 0.021228427067399025,
+      "raw_disagreement_pixels": 824411
+    },
+    {
+      "id": "TCGA-LL-A5YO-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.3930858853255556,
+        "dice_tumor": 0.6569432143463502,
+        "dice_stroma": 0.5130255309949227,
+        "dice_inflammatory": 0.7867241394153435,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.008736541871161702
+      },
+      "probability_mean_absolute_difference": 0.026373397558927536,
+      "raw_disagreement_pixels": 786858
+    },
+    {
+      "id": "TCGA-LL-A73Y-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.727167221745022,
+        "dice_tumor": 0.6846904805077062,
+        "dice_stroma": 0.5907121994958541,
+        "dice_inflammatory": 0.8400587652343575,
+        "dice_necrosis": 1.0,
+        "dice_other": 0.5203746634871922
+      },
+      "probability_mean_absolute_difference": 0.02446998655796051,
+      "raw_disagreement_pixels": 362220
+    },
+    {
+      "id": "TCGA-LL-A740-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.49412542860781594,
+        "dice_tumor": 0.6811735122412869,
+        "dice_stroma": 0.81896412535054,
+        "dice_inflammatory": 0.8634687585592857,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.10702074688796681
+      },
+      "probability_mean_absolute_difference": 0.023135265335440636,
+      "raw_disagreement_pixels": 730205
+    },
+    {
+      "id": "TCGA-OL-A5D6-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.8061862304847389,
+        "dice_tumor": 0.8387139080834575,
+        "dice_stroma": 0.8163754713742428,
+        "dice_inflammatory": 1.0,
+        "dice_necrosis": 0.7661305948459601,
+        "dice_other": 0.6097111781200348
+      },
+      "probability_mean_absolute_difference": 0.020098406821489334,
+      "raw_disagreement_pixels": 363779
+    },
+    {
+      "id": "TCGA-OL-A5D7-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5636370941058254,
+        "dice_tumor": 0.8732692333929619,
+        "dice_stroma": 0.5967243456587255,
+        "dice_inflammatory": 0.046149760892930006,
+        "dice_necrosis": 0.816026920733108,
+        "dice_other": 0.4860152098514017
+      },
+      "probability_mean_absolute_difference": 0.012895599938929081,
+      "raw_disagreement_pixels": 1537464
+    },
+    {
+      "id": "TCGA-OL-A5RW-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.4374191227976175,
+        "dice_tumor": 0.5099319019241216,
+        "dice_stroma": 0.7651044669940857,
+        "dice_inflammatory": 0.0,
+        "dice_necrosis": 0.9120592450698803,
+        "dice_other": 0.0
+      },
+      "probability_mean_absolute_difference": 0.03105185553431511,
+      "raw_disagreement_pixels": 123708
+    },
+    {
+      "id": "TCGA-OL-A66I-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.4863963316171823,
+        "dice_tumor": 0.7424205139986731,
+        "dice_stroma": 0.8008494330815814,
+        "dice_inflammatory": 0.7586381127803329,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.1300735982253238
+      },
+      "probability_mean_absolute_difference": 0.024001827463507652,
+      "raw_disagreement_pixels": 790939
+    },
+    {
+      "id": "TCGA-OL-A66P-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.34819954819969406,
+        "dice_tumor": 0.6902397600838558,
+        "dice_stroma": 0.7459365277256447,
+        "dice_inflammatory": 0.3048214531889698,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.0
+      },
+      "probability_mean_absolute_difference": 0.023410821333527565,
+      "raw_disagreement_pixels": 2046165
+    },
+    {
+      "id": "TCGA-OL-A6VO-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5844191534034616,
+        "dice_tumor": 0.8197269021616784,
+        "dice_stroma": 0.5948162518503535,
+        "dice_inflammatory": 0.6922257458013947,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.8153268672038813
+      },
+      "probability_mean_absolute_difference": 0.02067001722753048,
+      "raw_disagreement_pixels": 674232
+    },
+    {
+      "id": "TCGA-OL-A97C-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.5964803221394462,
+        "dice_tumor": 0.754914598612297,
+        "dice_stroma": 0.908003324141672,
+        "dice_inflammatory": 1.0,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.31948368794326243
+      },
+      "probability_mean_absolute_difference": 0.026595478877425194,
+      "raw_disagreement_pixels": 2083211
+    },
+    {
+      "id": "TCGA-S3-AA10-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.7201681662141309,
+        "dice_tumor": 0.8843834935780786,
+        "dice_stroma": 0.7000468616478761,
+        "dice_inflammatory": 0.7861543845346275,
+        "dice_necrosis": 0.5608272628406465,
+        "dice_other": 0.6694288284694264
+      },
+      "probability_mean_absolute_difference": 0.028398893773555756,
+      "raw_disagreement_pixels": 1236145
+    },
+    {
+      "id": "TCGA-S3-AA15-DX1",
+      "v1_probabilities_v2_post_scores": {
+        "dice": 0.654710428940487,
+        "dice_tumor": 0.8543359585715827,
+        "dice_stroma": 0.8305577616900727,
+        "dice_inflammatory": 0.7697950934853571,
+        "dice_necrosis": 0.0,
+        "dice_other": 0.8188633309554225
+      },
+      "probability_mean_absolute_difference": 0.0194233451038599,
+      "raw_disagreement_pixels": 257605
+    }
+  ],
+  "padding_audit": {
+    "runtime": {
+      "packages": {
+        "tiatoolbox": "2.1.3",
+        "torch": "2.11.0",
+        "torchvision": "0.26.0",
+        "numpy": "2.4.3",
+        "scipy": "1.17.0",
+        "scikit-image": "0.26.0",
+        "pillow": "12.1.1",
+        "dask": "2026.7.0",
+        "zarr": "3.1.6",
+        "rankseg": "0.0.8",
+        "triton": "3.6.0"
+      },
+      "gpu": "NVIDIA GeForce RTX 3090",
+      "cuda": "13.0",
+      "tiatoolbox_source_sha256": {
+        "models/architecture/micronet.py": "9e241e479f5405fcc7e3092acef7a10257fad2d32813f91c1d1533ea254f3360",
+        "models/engine/multi_task_segmentor.py": "15747635dfa643681227d3ab24f89c8f5a5700387166540c0c177f92f0433c45",
+        "models/engine/engine_abc.py": "44d671c6ada54eb56a731def13e948289b639d6d53606eb826aec5ce42de42dd",
+        "models/dataset/dataset_abc.py": "73a4ae6488045d9aa85c4737e87ba60789c98a9369c4fbe5b5b1c83b4eda72cd",
+        "data/pretrained_model.yaml": "71258a85a955f77b34e64fb42fc98397dfb754d374ab758ac4d6b5ff700ac793",
+        "models/architecture/hovernet.py": "4c004c793069824db12f8d880e4773b9034728c3235328cdaa46897a8a90fa0f",
+        "models/architecture/unet.py": "5b7b166955d9f8508b49c6fff382801d58a306b064fad0d11fbec621fc5f3179",
+        "models/engine/semantic_segmentor.py": "5a4c136eb3cc7f8ec59ceb61c7e74b607a6e926002928c9e1a9adf9f5163f9ec",
+        "models/engine/patch_predictor.py": "e15457c30d2880dffd18f87376f4a1880d5451d118e44f19ab6fae6b18260978"
+      }
+    },
+    "checkpoint_sha256": "92d6c78e00ca18debfa1cfbb7c976facdce05fb9c0293117fbf4229e94a1aabf",
+    "cases": [
+      {
+        "id": "TCGA-E2-A14N-DX1",
+        "patches": 216,
+        "padding": {
+          "0": {
+            "head_mean_absolute_errors": [
+              0.01314630452543497
+            ],
+            "head_max_absolute_errors": [
+              0.7436175346374512
+            ],
+            "raw_disagreement_pixels": 1181876,
+            "replay_scores": {
+              "dice": 0.6796962698024073,
+              "dice_tumor": 0.9018835855027258,
+              "dice_stroma": 0.5058678425996865,
+              "dice_inflammatory": 0.8364501177228469,
+              "dice_necrosis": 0.8716286093311774,
+              "dice_other": 0.28265119385560017
+            },
+            "reference_scores": {
+              "dice": 0.6820876863990295,
+              "dice_tumor": 0.9034637124453886,
+              "dice_stroma": 0.5066442982765897,
+              "dice_inflammatory": 0.83698473837027,
+              "dice_necrosis": 0.8761099429026461,
+              "dice_other": 0.28723574000025287
+            }
+          },
+          "255": {
+            "head_mean_absolute_errors": [
+              5.860947838165487e-11
+            ],
+            "head_max_absolute_errors": [
+              5.960464477539063e-08
+            ],
+            "raw_disagreement_pixels": 0,
+            "replay_scores": {
+              "dice": 0.679632242692225,
+              "dice_tumor": 0.9018850659239278,
+              "dice_stroma": 0.5056777566319687,
+              "dice_inflammatory": 0.83615993697857,
+              "dice_necrosis": 0.8716589502759463,
+              "dice_other": 0.28277950365071214
+            },
+            "reference_scores": {
+              "dice": 0.679632242692225,
+              "dice_tumor": 0.9018850659239278,
+              "dice_stroma": 0.5056777566319687,
+              "dice_inflammatory": 0.83615993697857,
+              "dice_necrosis": 0.8716589502759463,
+              "dice_other": 0.28277950365071214
+            }
+          }
+        }
+      }
+    ],
+    "complete_cohort": false,
+    "selection": "first N cases in manifest order"
+  },
+  "padding_stride256_audit": {
+    "runtime": {
+      "packages": {
+        "tiatoolbox": "2.1.3",
+        "torch": "2.11.0",
+        "torchvision": "0.26.0",
+        "numpy": "2.4.3",
+        "scipy": "1.17.0",
+        "scikit-image": "0.26.0",
+        "pillow": "12.1.1",
+        "dask": "2026.7.0",
+        "zarr": "3.1.6",
+        "rankseg": "0.0.8",
+        "triton": "3.6.0"
+      },
+      "gpu": "NVIDIA GeForce RTX 3090",
+      "cuda": "13.0",
+      "tiatoolbox_source_sha256": {
+        "models/architecture/micronet.py": "9e241e479f5405fcc7e3092acef7a10257fad2d32813f91c1d1533ea254f3360",
+        "models/engine/multi_task_segmentor.py": "15747635dfa643681227d3ab24f89c8f5a5700387166540c0c177f92f0433c45",
+        "models/engine/engine_abc.py": "44d671c6ada54eb56a731def13e948289b639d6d53606eb826aec5ce42de42dd",
+        "models/dataset/dataset_abc.py": "73a4ae6488045d9aa85c4737e87ba60789c98a9369c4fbe5b5b1c83b4eda72cd",
+        "data/pretrained_model.yaml": "71258a85a955f77b34e64fb42fc98397dfb754d374ab758ac4d6b5ff700ac793",
+        "models/architecture/hovernet.py": "4c004c793069824db12f8d880e4773b9034728c3235328cdaa46897a8a90fa0f",
+        "models/architecture/unet.py": "5b7b166955d9f8508b49c6fff382801d58a306b064fad0d11fbec621fc5f3179",
+        "models/engine/semantic_segmentor.py": "5a4c136eb3cc7f8ec59ceb61c7e74b607a6e926002928c9e1a9adf9f5163f9ec",
+        "models/engine/patch_predictor.py": "e15457c30d2880dffd18f87376f4a1880d5451d118e44f19ab6fae6b18260978"
+      }
+    },
+    "checkpoint_sha256": "92d6c78e00ca18debfa1cfbb7c976facdce05fb9c0293117fbf4229e94a1aabf",
+    "cases": [
+      {
+        "id": "TCGA-E2-A14N-DX1",
+        "patches": 672,
+        "padding": {
+          "0": {
+            "head_mean_absolute_errors": [
+              5.677924796998468e-11
+            ],
+            "head_max_absolute_errors": [
+              5.960464477539063e-08
+            ],
+            "raw_disagreement_pixels": 0,
+            "replay_scores": {
+              "dice": 0.6820876863990295,
+              "dice_tumor": 0.9034637124453886,
+              "dice_stroma": 0.5066442982765897,
+              "dice_inflammatory": 0.83698473837027,
+              "dice_necrosis": 0.8761099429026461,
+              "dice_other": 0.28723574000025287
+            },
+            "reference_scores": {
+              "dice": 0.6820876863990295,
+              "dice_tumor": 0.9034637124453886,
+              "dice_stroma": 0.5066442982765897,
+              "dice_inflammatory": 0.83698473837027,
+              "dice_necrosis": 0.8761099429026461,
+              "dice_other": 0.28723574000025287
+            }
+          },
+          "255": {
+            "head_mean_absolute_errors": [
+              0.013131006620824337
+            ],
+            "head_max_absolute_errors": [
+              0.7436175346374512
+            ],
+            "raw_disagreement_pixels": 1184494,
+            "replay_scores": {
+              "dice": 0.6820962168324938,
+              "dice_tumor": 0.9034747868646738,
+              "dice_stroma": 0.5066558614704404,
+              "dice_inflammatory": 0.8367469061401871,
+              "dice_necrosis": 0.876125826365565,
+              "dice_other": 0.2874777033216025
+            },
+            "reference_scores": {
+              "dice": 0.679632242692225,
+              "dice_tumor": 0.9018850659239278,
+              "dice_stroma": 0.5056777566319687,
+              "dice_inflammatory": 0.83615993697857,
+              "dice_necrosis": 0.8716589502759463,
+              "dice_other": 0.28277950365071214
+            }
+          }
+        }
+      }
+    ],
+    "complete_cohort": false,
+    "selection": "first N cases in manifest order",
+    "stride_shape": [
+      256,
+      256
+    ],
+    "legacy_bcss_stride": true
+  },
+  "presence_audit": {
+    "cases": [
+      {
+        "id": "TCGA-E2-A14N-DX1",
+        "valid_pixels": 27460670,
+        "class_pixels": {
+          "tumor": 15099041,
+          "stroma": 4852507,
+          "inflammatory": 2520812,
+          "necrosis": 4456593,
+          "other": 531717
+        }
+      },
+      {
+        "id": "TCGA-E2-A14R-DX1",
+        "valid_pixels": 6743853,
+        "class_pixels": {
+          "tumor": 4069596,
+          "stroma": 1324852,
+          "inflammatory": 1349405,
+          "necrosis": 0,
+          "other": 0
+        }
+      },
+      {
+        "id": "TCGA-E2-A14X-DX1",
+        "valid_pixels": 27949727,
+        "class_pixels": {
+          "tumor": 12050117,
+          "stroma": 8142081,
+          "inflammatory": 4198996,
+          "necrosis": 1810297,
+          "other": 1748236
+        }
+      },
+      {
+        "id": "TCGA-E2-A150-DX1",
+        "valid_pixels": 18404694,
+        "class_pixels": {
+          "tumor": 8953748,
+          "stroma": 6484147,
+          "inflammatory": 2281114,
+          "necrosis": 479940,
+          "other": 205745
+        }
+      },
+      {
+        "id": "TCGA-E2-A158-DX1",
+        "valid_pixels": 8870663,
+        "class_pixels": {
+          "tumor": 1795774,
+          "stroma": 6262733,
+          "inflammatory": 387689,
+          "necrosis": 0,
+          "other": 424467
+        }
+      },
+      {
+        "id": "TCGA-E2-A159-DX1",
+        "valid_pixels": 32649253,
+        "class_pixels": {
+          "tumor": 15359023,
+          "stroma": 10677904,
+          "inflammatory": 5128204,
+          "necrosis": 1482336,
+          "other": 1786
+        }
+      },
+      {
+        "id": "TCGA-E2-A1AZ-DX1",
+        "valid_pixels": 11527042,
+        "class_pixels": {
+          "tumor": 5773900,
+          "stroma": 4671850,
+          "inflammatory": 1052127,
+          "necrosis": 0,
+          "other": 29165
+        }
+      },
+      {
+        "id": "TCGA-E2-A1B6-DX1",
+        "valid_pixels": 18064606,
+        "class_pixels": {
+          "tumor": 9100188,
+          "stroma": 4240042,
+          "inflammatory": 3106670,
+          "necrosis": 1509935,
+          "other": 107771
+        }
+      },
+      {
+        "id": "TCGA-E2-A1L7-DX1",
+        "valid_pixels": 24170843,
+        "class_pixels": {
+          "tumor": 6414534,
+          "stroma": 15033917,
+          "inflammatory": 2197351,
+          "necrosis": 0,
+          "other": 525041
+        }
+      },
+      {
+        "id": "TCGA-E2-A1LH-DX1",
+        "valid_pixels": 10450509,
+        "class_pixels": {
+          "tumor": 3889997,
+          "stroma": 3394949,
+          "inflammatory": 3115035,
+          "necrosis": 0,
+          "other": 50528
+        }
+      },
+      {
+        "id": "TCGA-E2-A1LI-DX1",
+        "valid_pixels": 34756106,
+        "class_pixels": {
+          "tumor": 12292706,
+          "stroma": 10927107,
+          "inflammatory": 4316797,
+          "necrosis": 5388212,
+          "other": 1831284
+        }
+      },
+      {
+        "id": "TCGA-E2-A1LK-DX1",
+        "valid_pixels": 17710961,
+        "class_pixels": {
+          "tumor": 10811093,
+          "stroma": 5942341,
+          "inflammatory": 597416,
+          "necrosis": 335608,
+          "other": 24503
+        }
+      },
+      {
+        "id": "TCGA-E2-A1LL-DX1",
+        "valid_pixels": 15327834,
+        "class_pixels": {
+          "tumor": 2173778,
+          "stroma": 12283487,
+          "inflammatory": 799627,
+          "necrosis": 6553,
+          "other": 64389
+        }
+      },
+      {
+        "id": "TCGA-E2-A1LS-DX1",
+        "valid_pixels": 8865894,
+        "class_pixels": {
+          "tumor": 4221484,
+          "stroma": 4220010,
+          "inflammatory": 393483,
+          "necrosis": 0,
+          "other": 30917
+        }
+      },
+      {
+        "id": "TCGA-E2-A573-DX1",
+        "valid_pixels": 7914225,
+        "class_pixels": {
+          "tumor": 2430538,
+          "stroma": 3581232,
+          "inflammatory": 1846525,
+          "necrosis": 0,
+          "other": 55930
+        }
+      },
+      {
+        "id": "TCGA-E2-A574-DX1",
+        "valid_pixels": 9925073,
+        "class_pixels": {
+          "tumor": 5998646,
+          "stroma": 2764525,
+          "inflammatory": 557353,
+          "necrosis": 92522,
+          "other": 512027
+        }
+      },
+      {
+        "id": "TCGA-EW-A1OV-DX1",
+        "valid_pixels": 44884194,
+        "class_pixels": {
+          "tumor": 8052933,
+          "stroma": 22087221,
+          "inflammatory": 10371517,
+          "necrosis": 0,
+          "other": 4372523
+        }
+      },
+      {
+        "id": "TCGA-EW-A1OW-DX1",
+        "valid_pixels": 40227779,
+        "class_pixels": {
+          "tumor": 14158061,
+          "stroma": 20160396,
+          "inflammatory": 3621049,
+          "necrosis": 2062021,
+          "other": 226252
+        }
+      },
+      {
+        "id": "TCGA-EW-A1P1-DX1",
+        "valid_pixels": 23354162,
+        "class_pixels": {
+          "tumor": 6652910,
+          "stroma": 12810017,
+          "inflammatory": 2466483,
+          "necrosis": 837985,
+          "other": 586767
+        }
+      },
+      {
+        "id": "TCGA-EW-A1P4-DX1",
+        "valid_pixels": 18162936,
+        "class_pixels": {
+          "tumor": 6738712,
+          "stroma": 9256173,
+          "inflammatory": 2053508,
+          "necrosis": 0,
+          "other": 114543
+        }
+      },
+      {
+        "id": "TCGA-EW-A1P7-DX1",
+        "valid_pixels": 17654040,
+        "class_pixels": {
+          "tumor": 5281960,
+          "stroma": 7777715,
+          "inflammatory": 3113469,
+          "necrosis": 488290,
+          "other": 992606
+        }
+      },
+      {
+        "id": "TCGA-EW-A1P8-DX1",
+        "valid_pixels": 10227087,
+        "class_pixels": {
+          "tumor": 5155636,
+          "stroma": 2100045,
+          "inflammatory": 949176,
+          "necrosis": 1651327,
+          "other": 370903
+        }
+      },
+      {
+        "id": "TCGA-EW-A1PB-DX1",
+        "valid_pixels": 16002481,
+        "class_pixels": {
+          "tumor": 4293408,
+          "stroma": 6285796,
+          "inflammatory": 5336958,
+          "necrosis": 0,
+          "other": 86319
+        }
+      },
+      {
+        "id": "TCGA-EW-A1PH-DX1",
+        "valid_pixels": 19812554,
+        "class_pixels": {
+          "tumor": 9932856,
+          "stroma": 7060588,
+          "inflammatory": 2168947,
+          "necrosis": 553408,
+          "other": 96755
+        }
+      },
+      {
+        "id": "TCGA-EW-A3U0-DX1",
+        "valid_pixels": 5283784,
+        "class_pixels": {
+          "tumor": 1297321,
+          "stroma": 3281092,
+          "inflammatory": 0,
+          "necrosis": 614799,
+          "other": 90572
+        }
+      },
+      {
+        "id": "TCGA-EW-A6SB-DX1",
+        "valid_pixels": 19801947,
+        "class_pixels": {
+          "tumor": 8305909,
+          "stroma": 5507384,
+          "inflammatory": 5796881,
+          "necrosis": 0,
+          "other": 191773
+        }
+      },
+      {
+        "id": "TCGA-GM-A2DB-DX1",
+        "valid_pixels": 44503782,
+        "class_pixels": {
+          "tumor": 12470435,
+          "stroma": 17003801,
+          "inflammatory": 6726945,
+          "necrosis": 5575118,
+          "other": 2727483
+        }
+      },
+      {
+        "id": "TCGA-GM-A2DD-DX1",
+        "valid_pixels": 35035089,
+        "class_pixels": {
+          "tumor": 8594247,
+          "stroma": 24656682,
+          "inflammatory": 670459,
+          "necrosis": 854736,
+          "other": 258965
+        }
+      },
+      {
+        "id": "TCGA-GM-A2DF-DX1",
+        "valid_pixels": 13718582,
+        "class_pixels": {
+          "tumor": 1326922,
+          "stroma": 6999871,
+          "inflammatory": 4942840,
+          "necrosis": 0,
+          "other": 448949
+        }
+      },
+      {
+        "id": "TCGA-GM-A2DH-DX1",
+        "valid_pixels": 11924672,
+        "class_pixels": {
+          "tumor": 6751892,
+          "stroma": 3021756,
+          "inflammatory": 860388,
+          "necrosis": 1251096,
+          "other": 39540
+        }
+      },
+      {
+        "id": "TCGA-GM-A2DI-DX1",
+        "valid_pixels": 3252819,
+        "class_pixels": {
+          "tumor": 1098228,
+          "stroma": 1880771,
+          "inflammatory": 0,
+          "necrosis": 0,
+          "other": 273820
+        }
+      },
+      {
+        "id": "TCGA-GM-A3XL-DX1",
+        "valid_pixels": 19620809,
+        "class_pixels": {
+          "tumor": 13188165,
+          "stroma": 2188966,
+          "inflammatory": 1729974,
+          "necrosis": 2289179,
+          "other": 224525
+        }
+      },
+      {
+        "id": "TCGA-LL-A441-DX1",
+        "valid_pixels": 8167186,
+        "class_pixels": {
+          "tumor": 4134428,
+          "stroma": 2172694,
+          "inflammatory": 1702856,
+          "necrosis": 0,
+          "other": 157208
+        }
+      },
+      {
+        "id": "TCGA-LL-A5YO-DX1",
+        "valid_pixels": 8823697,
+        "class_pixels": {
+          "tumor": 1438233,
+          "stroma": 3216796,
+          "inflammatory": 4151708,
+          "necrosis": 0,
+          "other": 16960
+        }
+      },
+      {
+        "id": "TCGA-LL-A73Y-DX1",
+        "valid_pixels": 5269417,
+        "class_pixels": {
+          "tumor": 1064023,
+          "stroma": 1530415,
+          "inflammatory": 2515517,
+          "necrosis": 0,
+          "other": 159462
+        }
+      },
+      {
+        "id": "TCGA-LL-A740-DX1",
+        "valid_pixels": 11130129,
+        "class_pixels": {
+          "tumor": 2141567,
+          "stroma": 8183038,
+          "inflammatory": 685697,
+          "necrosis": 0,
+          "other": 119827
+        }
+      },
+      {
+        "id": "TCGA-OL-A5D6-DX1",
+        "valid_pixels": 8157409,
+        "class_pixels": {
+          "tumor": 4318544,
+          "stroma": 2807992,
+          "inflammatory": 0,
+          "necrosis": 461825,
+          "other": 569048
+        }
+      },
+      {
+        "id": "TCGA-OL-A5D7-DX1",
+        "valid_pixels": 22119179,
+        "class_pixels": {
+          "tumor": 15516275,
+          "stroma": 2467899,
+          "inflammatory": 2825421,
+          "necrosis": 1277354,
+          "other": 32230
+        }
+      },
+      {
+        "id": "TCGA-OL-A5RW-DX1",
+        "valid_pixels": 1265992,
+        "class_pixels": {
+          "tumor": 329069,
+          "stroma": 515617,
+          "inflammatory": 0,
+          "necrosis": 421306,
+          "other": 0
+        }
+      },
+      {
+        "id": "TCGA-OL-A66I-DX1",
+        "valid_pixels": 6302527,
+        "class_pixels": {
+          "tumor": 1423951,
+          "stroma": 3141566,
+          "inflammatory": 1666402,
+          "necrosis": 0,
+          "other": 70608
+        }
+      },
+      {
+        "id": "TCGA-OL-A66P-DX1",
+        "valid_pixels": 19446687,
+        "class_pixels": {
+          "tumor": 7204793,
+          "stroma": 6692763,
+          "inflammatory": 5549131,
+          "necrosis": 0,
+          "other": 0
+        }
+      },
+      {
+        "id": "TCGA-OL-A6VO-DX1",
+        "valid_pixels": 5821618,
+        "class_pixels": {
+          "tumor": 2873019,
+          "stroma": 2201730,
+          "inflammatory": 612295,
+          "necrosis": 0,
+          "other": 134574
+        }
+      },
+      {
+        "id": "TCGA-OL-A97C-DX1",
+        "valid_pixels": 16526669,
+        "class_pixels": {
+          "tumor": 4045513,
+          "stroma": 9893559,
+          "inflammatory": 0,
+          "necrosis": 0,
+          "other": 2587597
+        }
+      },
+      {
+        "id": "TCGA-S3-AA10-DX1",
+        "valid_pixels": 8034548,
+        "class_pixels": {
+          "tumor": 3534479,
+          "stroma": 2793752,
+          "inflammatory": 567310,
+          "necrosis": 600426,
+          "other": 538581
+        }
+      },
+      {
+        "id": "TCGA-S3-AA15-DX1",
+        "valid_pixels": 6159425,
+        "class_pixels": {
+          "tumor": 2026592,
+          "stroma": 3122475,
+          "inflammatory": 520501,
+          "necrosis": 0,
+          "other": 489857
+        }
+      }
+    ],
+    "summary": {
+      "tumor": {
+        "present": {
+          "n": 45,
+          "mean_dice": {
+            "argmax": 0.8280635600009083,
+            "rankseg": 0.8265283470580879,
+            "multilabel": 0.8294029965567372
+          },
+          "discordant_absence_cases": []
+        },
+        "absent": {
+          "n": 0,
+          "mean_dice": {},
+          "discordant_absence_cases": []
+        }
+      },
+      "stroma": {
+        "present": {
+          "n": 45,
+          "mean_dice": {
+            "argmax": 0.7593164009781855,
+            "rankseg": 0.7496768342866243,
+            "multilabel": 0.7770720663511652
+          },
+          "discordant_absence_cases": []
+        },
+        "absent": {
+          "n": 0,
+          "mean_dice": {},
+          "discordant_absence_cases": []
+        }
+      },
+      "inflammatory": {
+        "present": {
+          "n": 40,
+          "mean_dice": {
+            "argmax": 0.710505696033101,
+            "rankseg": 0.7387205329280403,
+            "multilabel": 0.7373474834036369
+          },
+          "discordant_absence_cases": []
+        },
+        "absent": {
+          "n": 5,
+          "mean_dice": {
+            "argmax": 0.4,
+            "rankseg": 0.4,
+            "multilabel": 0.4
+          },
+          "discordant_absence_cases": []
+        }
+      },
+      "necrosis": {
+        "present": {
+          "n": 23,
+          "mean_dice": {
+            "argmax": 0.6861708588110854,
+            "rankseg": 0.6911952451205164,
+            "multilabel": 0.6946442238649702
+          },
+          "discordant_absence_cases": []
+        },
+        "absent": {
+          "n": 22,
+          "mean_dice": {
+            "argmax": 0.0,
+            "rankseg": 0.13636363636363635,
+            "multilabel": 0.13636363636363635
+          },
+          "discordant_absence_cases": [
+            {
+              "id": "TCGA-E2-A14R-DX1",
+              "scores": {
+                "argmax": 0.0,
+                "rankseg": 1.0,
+                "multilabel": 1.0
+              }
+            },
+            {
+              "id": "TCGA-GM-A2DI-DX1",
+              "scores": {
+                "argmax": 0.0,
+                "rankseg": 1.0,
+                "multilabel": 1.0
+              }
+            },
+            {
+              "id": "TCGA-LL-A73Y-DX1",
+              "scores": {
+                "argmax": 0.0,
+                "rankseg": 1.0,
+                "multilabel": 1.0
+              }
+            }
+          ]
+        }
+      },
+      "other": {
+        "present": {
+          "n": 42,
+          "mean_dice": {
+            "argmax": 0.3677059851888284,
+            "rankseg": 0.3407913191187546,
+            "multilabel": 0.33915304246298794
+          },
+          "discordant_absence_cases": []
+        },
+        "absent": {
+          "n": 3,
+          "mean_dice": {
+            "argmax": 0.0,
+            "rankseg": 0.0,
+            "multilabel": 0.0
+          },
+          "discordant_absence_cases": []
+        }
+      }
+    },
+    "note": "Diagnostic only; primary evaluation still averages every class over all 45 ROIs."
+  }
+}

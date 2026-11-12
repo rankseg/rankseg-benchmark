@@ -171,14 +171,24 @@ def test_binary_multiclass_rankseg_adapter_uses_foreground_channel():
     assert torch.equal(pred, torch.tensor([[[0, 1], [1, 1]]]))
 
 
-def test_kits_uses_foreground_channel_rankseg_for_every_solver():
-    spec = REGISTRY["kits"]
+@pytest.mark.parametrize("name", ["kits", "lits"])
+def test_slice_datasets_use_foreground_channel_rankseg_for_every_solver(name):
+    spec = REGISTRY[name]
 
+    assert spec.eval_unit == "case" and spec.num_folds == 5 and spec.case_id_key == "case_id"
     assert spec.rankseg_channels == (1,)
     assert spec.evaluation_class_ids == (1,)
     assert spec.display_mode == "foreground"
-    for solver in ("RMA", "rma", "BA", "TRNA", "BA+TRNA"):
+    for solver in ("RMA", "rma", "DEP", "BA", "TRNA", "BA+TRNA"):
         assert _rankseg_output_mode(spec, solver) == "multilabel"
+
+
+def test_deepglobe_land_is_image_level_multiclass_with_unknown_ignored():
+    spec = REGISTRY["deepglobe_land"]
+
+    assert (spec.hf_data_dir, spec.num_classes, spec.ignore_index) == ("deepglobe_land", 6, 6)
+    assert spec.eval_unit == "image" and spec.rankseg_channels is None
+    assert _rankseg_output_mode(spec, "RMA") == "multiclass"
 
 
 def test_regular_binary_multiclass_rma_keeps_multiclass_semantics():
@@ -192,6 +202,7 @@ def test_regular_binary_multiclass_rma_keeps_multiclass_semantics():
 
     assert spec.rankseg_channels is None
     assert _rankseg_output_mode(spec, "RMA") == "multiclass"
+    assert _rankseg_output_mode(spec, "DEP") == "multiclass"
     assert _rankseg_output_mode(spec, "ba") == "multilabel"
 
 

@@ -1,7 +1,8 @@
 # Quick benchmark
 
 Run commands from the repository root. Quick uses hosted probabilities for
-VOC, Cityscapes, ADE20K, and KiTS; no model inference is required.
+VOC, Cityscapes, ADE20K, KiTS, LiTS, and DeepGlobe Land; no model inference
+is required.
 
 ```bash
 python -m pip install -e . "rankseg==0.0.7"
@@ -11,11 +12,13 @@ rankseg-bench quick --help
 ```
 
 Remove `--limit` for the full hosted dataset. `--metric iou` selects the IoU
-objective; both Dice and IoU are reported. For KiTS, limits apply per fold.
+objective; both Dice and IoU are reported. For KiTS and LiTS, limits apply
+per fold.
 
 Natural-image metrics average over GT-present classes per image, then images.
-KiTS retains foreground slice → case → fold aggregation, including its existing
-empty-slice convention. Neither is interchangeable with whole-volume nnU-Net
+KiTS and LiTS use foreground slice → case → fold aggregation, including the
+existing empty-slice convention. DeepGlobe Land is evaluated per image over its
+six land-cover classes; the unknown class (index 6) is ignored. Neither is interchangeable with whole-volume nnU-Net
 evaluation. Timing excludes inference, loading, and transfers.
 
 The [archived 0.0.6 reference](REFERENCE_0.0.6.md) preserves the original result

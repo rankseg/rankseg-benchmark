@@ -40,7 +40,7 @@ def build_parser(source_type: str | None = None) -> argparse.ArgumentParser:
     p.add_argument(
         "--solver",
         default="RMA",
-        help="RankSEG solver (RMA, BA, TRNA, BA+TRNA). Default: RMA.",
+        help="RankSEG solver (RMA, DEP, BA, TRNA, BA+TRNA). Default: RMA.",
     )
     p.add_argument(
         "--metric",

@@ -5,7 +5,7 @@ with argmax using three complementary benchmark suites.
 
 | Suite | What it evaluates | Start here |
 | :--- | :--- | :--- |
-| **Quick** | Hosted probabilities: VOC, Cityscapes, ADE20K, and KiTS | [Guide and results](docs/quick/README.md) |
+| **Quick** | Hosted probabilities: VOC, Cityscapes, ADE20K, KiTS, LiTS, and DeepGlobe Land | [Guide and results](docs/quick/README.md) |
 | **MONAI** | Model Zoo Bundles evaluated on their matching datasets | [Results and protocol](docs/monai/MATCHED_MODEL_ZOO_RESULTS_2026-10-09.md) |
 | **nnU-Net** | 16 datasets and 2,181 cases, with OOF or independent-test evaluation | [Full study and evidence](docs/nnunet/README.md) |
 

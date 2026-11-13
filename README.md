@@ -6,7 +6,7 @@ probabilities, MONAI Bundles, nnU-Net, and TIAToolbox.
 
 | Benchmark | What it evaluates | Start here |
 | :--- | :--- | :--- |
-| **Quick** | Hosted probabilities: VOC, Cityscapes, ADE20K, and KiTS | [Guide and results](docs/quick/README.md) |
+| **Quick** | Hosted probabilities: VOC, Cityscapes, ADE20K, KiTS, LiTS, and DeepGlobe Land | [Guide and results](docs/quick/README.md) |
 | **MONAI** | Complete Model Zoo Bundle inference on pancreas and prostate test cohorts | [Results and reproduction](#monai-complete-model-zoo-bundle-evaluation) |
 | **nnU-Net** | 16 datasets and 2,181 cases, with OOF or independent-test evaluation | [Results and evidence](#nnu-net-systematic-medical-benchmark) |
 | **TIAToolbox** | Pretrained nucleus and tissue segmentation models on CoNSeP, Kumar, and BCSS | [Results and reproduction](#tiatoolbox-nucleus-and-tissue-segmentation) |
